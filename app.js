@@ -1,4 +1,4 @@
-import { industries, conversations, channels, metrics, followups } from './data.js?v=20261015-client';
+import { industries, conversations, channels, metrics, followups } from './data.js?v=20261015-ux';
 
 const paths = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -91,12 +91,25 @@ function voiceArt() {
   return '<div class="voice-art" aria-hidden="true"><img src="./assets/auction-car.svg" width="440" height="310" alt=""></div>';
 }
 
+function scenarioPicker() {
+  const choices = [
+    ['onboarding', 'Торги', 'Допуск к торгам', 'user'],
+    ['shipping', 'Доставка', 'Статус и получение авто', 'globe'],
+    ['documents', 'Документы', 'Отправка и трек-номер', 'book'],
+  ];
+  return `<fieldset class="scenario-picker"><legend>Выберите тему</legend><div class="scenario-options">${choices.map(([key, title, description, symbol]) => `<label class="scenario-option"><input type="radio" name="scenario" aria-label="${esc(industries[key].name)}" id="scenario-${key}" value="${key}" ${key === state.industry ? 'checked' : ''}><span class="scenario-choice"><span class="scenario-symbol">${icon(symbol)}</span><span class="scenario-copy"><strong>${title}</strong><small>${description}</small></span><span class="scenario-check">${icon('check')}</span></span></label>`).join('')}</div></fieldset>`;
+}
+
+function focusScenario() {
+  document.querySelector('[name="scenario"]:checked')?.focus({ preventScroll: true });
+}
+
 function studio() {
-  return `<section class="studio-grid ${state.view === 'agent' ? 'full-studio' : ''}" aria-label="Интерактивная демонстрация">
+  return `${scenarioPicker()}<section class="studio-grid ${state.view === 'agent' ? 'full-studio' : ''}" aria-label="Интерактивная демонстрация">
     <article class="studio-card ${state.running ? 'is-running' : ''}">
-      <div class="studio-top"><span class="eyebrow">ПОПРОБУЙТЕ В ДЕЙСТВИИ</span><label class="sr-only" for="scenario">Сценарий поддержки</label><select id="scenario" class="scenario-select">${Object.entries(industries).map(([key, v]) => `<option value="${key}" ${key === state.industry ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
+      <div class="studio-top"><span class="eyebrow">ПОПРОБУЙТЕ В ДЕЙСТВИИ</span><span class="scenario-caption">${esc(fixture().name)}</span></div>
       <h2>Один вопрос.<br><span>Понятный ответ.</span></h2>
-      <p>Отвечает на вопросы в звонке.<br>Присылает детали в SMS или WhatsApp.<br>Живая поддержка — по вашему запросу.</p>
+      <p>Ответит на вопрос в звонке.<br>Сохранит детали в SMS или WhatsApp.<br>Поможет обратиться в поддержку.</p>
       ${voiceArt()}
       <div class="orbit-tag">${icon('database')}Ответы и детали под рукой</div>
       <div class="studio-actions"><button class="button primary" data-action="start">${icon(state.running ? 'pause' : 'play')}<span id="start-label">${state.running ? 'Приостановить' : 'Запустить сценарий'}</span></button><span class="studio-hint">${esc(fixture().topic)} · ~40 секунд</span></div>
@@ -211,7 +224,7 @@ function chart() {
   const coords = (arr) => arr.map((v, i) => [40 + i * 75, 154 - v / (step * 4) * 128]);
   const line = (arr) => coords(arr).map(([x, y], i) => `${i ? 'L' : 'M'}${x},${y}`).join(' ');
   const points = coords(m.ai);
-  return `<article class="panel"><div class="card-heading"><div><h2>Динамика обращений</h2><p>${m.chartLabel}</p></div><div class="chart-legend"><span><i class="legend-line"></i>AI-ассистент</span><span><i class="legend-line dashed"></i>Оператор</span></div></div><div class="line-chart"><svg viewBox="0 0 510 170" role="img" aria-label="${esc(m.chartLabel)}: нагрузка AI и оператора. Точные значения доступны в таблице под графиком."><defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#70baff" stop-opacity=".35"/><stop offset="1" stop-color="#70baff" stop-opacity="0"/></linearGradient></defs>${[26, 58, 90, 122, 154].map((y, i) => `<line x1="40" x2="500" y1="${y}" y2="${y}" stroke="#e9ede5" stroke-dasharray="3 5"/><text x="0" y="${y + 3}" fill="#6b7569" font-size="9" font-family="Manrope, sans-serif">${fmt(step * (4 - i))}</text>`).join('')}<path d="${line(m.ai)} L490,154 L40,154Z" fill="url(#chart-fill)"/><path d="${line(m.human)}" fill="none" stroke="#99aec4" stroke-width="1.8" stroke-dasharray="4 5" stroke-linejoin="round"/><path d="${line(m.ai)}" fill="none" stroke="#0875dc" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3" fill="#fff" stroke="#0875dc" stroke-width="1.5"><title>${m.labels[i]}: AI ${m.ai[i]}, оператор ${m.human[i]}</title></circle>`).join('')}</svg><div class="chart-labels">${m.labels.map((label) => `<span>${label}</span>`).join('')}</div></div><div class="chart-summary"><span>Удобный способ получить ответ</span><b>Голос, сообщения и поддержка рядом ${icon('arrow-up').replace('class="icon ', 'class="icon inline-icon ')}</b></div><details class="chart-data"><summary>Посмотреть данные графика</summary><table><caption class="sr-only">Пример нагрузки, условные значения</caption><thead><tr><th scope="col">Интервал</th><th scope="col">AI-ассистент</th><th scope="col">Оператор</th></tr></thead><tbody>${m.labels.map((label, i) => `<tr><th scope="row">${label}</th><td>${m.ai[i]}</td><td>${m.human[i]}</td></tr>`).join('')}</tbody></table></details></article>`;
+  return `<article class="panel"><div class="card-heading"><div><h2>Динамика обращений</h2><p>${m.chartLabel}</p></div><div class="chart-legend"><span><i class="legend-line"></i>AI-ассистент</span><span><i class="legend-line dashed"></i>Оператор</span></div></div><div class="line-chart"><svg viewBox="0 0 510 170" role="img" aria-label="${esc(m.chartLabel)}: нагрузка AI и оператора. Точные значения доступны в таблице под графиком."><defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#70baff" stop-opacity=".35"/><stop offset="1" stop-color="#70baff" stop-opacity="0"/></linearGradient></defs>${[26, 58, 90, 122, 154].map((y, i) => `<line x1="40" x2="500" y1="${y}" y2="${y}" stroke="#e9ede5" stroke-dasharray="3 5"/><text x="0" y="${y + 3}" fill="#6b7569" font-size="9" font-family="Manrope, sans-serif">${fmt(step * (4 - i))}</text>`).join('')}<path d="${line(m.ai)} L490,154 L40,154Z" fill="url(#chart-fill)"/><path d="${line(m.human)}" fill="none" stroke="#647b98" stroke-width="1.8" stroke-dasharray="4 5" stroke-linejoin="round"/><path d="${line(m.ai)}" fill="none" stroke="#0875dc" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3" fill="#fff" stroke="#0875dc" stroke-width="1.5"><title>${m.labels[i]}: AI ${m.ai[i]}, оператор ${m.human[i]}</title></circle>`).join('')}</svg><div class="chart-labels">${m.labels.map((label) => `<span>${label}</span>`).join('')}</div></div><div class="chart-summary"><span>Удобный способ получить ответ</span><b>Голос, сообщения и поддержка рядом ${icon('arrow-up').replace('class="icon ', 'class="icon inline-icon ')}</b></div><details class="chart-data"><summary>Посмотреть данные графика</summary><table><caption class="sr-only">Пример нагрузки, условные значения</caption><thead><tr><th scope="col">Интервал</th><th scope="col">AI-ассистент</th><th scope="col">Оператор</th></tr></thead><tbody>${m.labels.map((label, i) => `<tr><th scope="row">${label}</th><td>${m.ai[i]}</td><td>${m.human[i]}</td></tr>`).join('')}</tbody></table></details></article>`;
 }
 
 function channelPanel() {
@@ -270,7 +283,7 @@ function knowledgeCards() {
 }
 
 function knowledgeView() {
-  return `${pageHeading('Точные ответы начинаются здесь.', 'Понятные источники и правила вместо догадок.', `<button class="button secondary" data-action="settings">${icon('settings')}Выбрать сценарий</button>`)}<section class="view-intro">${icon('book')}<div><h2>${esc(state.company)} · ${esc(fixture().name)}</h2><p>Так может выглядеть база знаний вашей компании: ответы покупателям, контекст лота и правила передачи специалистам. Правила ниже основаны на публичном центре помощи; статусы профилей и лотов вымышлены.</p></div></section><div class="filter-bar"><div class="search-field"><label class="sr-only" for="knowledge-search">Поиск по базе знаний</label>${icon('search')}<input id="knowledge-search" type="search" placeholder="Найти ответ или правило" value="${esc(state.knowledgeSearch)}"></div></div><section class="knowledge-grid" id="knowledge-results" aria-label="Материалы базы знаний" aria-live="polite">${knowledgeCards()}</section><div class="analytics-note">${icon('shield')}Перед пилотом загружаются ваши согласованные материалы. Интеграции и правила проверяются отдельно.</div>`;
+  return `${pageHeading('Точные ответы начинаются здесь.', 'Понятные источники и правила вместо догадок.')} ${scenarioPicker()}<section class="view-intro">${icon('book')}<div><h2>${esc(state.company)} · ${esc(fixture().name)}</h2><p>Так может выглядеть база знаний вашей компании: ответы покупателям, контекст лота и правила передачи специалистам. Правила ниже основаны на публичном центре помощи; статусы профилей и лотов вымышлены.</p></div></section><div class="filter-bar"><div class="search-field"><label class="sr-only" for="knowledge-search">Поиск по базе знаний</label>${icon('search')}<input id="knowledge-search" type="search" placeholder="Найти ответ или правило" value="${esc(state.knowledgeSearch)}"></div></div><section class="knowledge-grid" id="knowledge-results" aria-label="Материалы базы знаний" aria-live="polite">${knowledgeCards()}</section><div class="analytics-note">${icon('shield')}Перед пилотом загружаются ваши согласованные материалы. Интеграции и правила проверяются отдельно.</div>`;
 }
 
 function render() {
@@ -412,7 +425,7 @@ document.addEventListener('click', (event) => {
     if (state.view !== 'agent') { history.pushState(null, '', '#agent'); state.view = 'agent'; }
     setIndustry(target.dataset.industry);
     window.scrollTo({ top: 0, behavior: 'instant' });
-    document.querySelector('#scenario')?.focus({ preventScroll: true });
+    focusScenario();
   } else if (action === 'presentation-settings') {
     target.closest('dialog').close(); settings();
   } else if (action === 'presentation-start') {
@@ -425,7 +438,7 @@ document.addEventListener('click', (event) => {
 document.addEventListener('change', (event) => {
   const el = event.target;
   if (el.id === 'period') { state.period = el.value; render(); document.querySelector('#period')?.focus(); }
-  else if (el.id === 'scenario') { setIndustry(el.value); document.querySelector('#scenario')?.focus(); }
+  else if (el.name === 'scenario') { setIndustry(el.value); focusScenario(); }
   else if (el.id === 'channel-filter' || el.id === 'status-filter') {
     if (el.id === 'channel-filter') state.filter = el.value; else state.status = el.value;
     document.querySelector('#conversation-results').innerHTML = table(filteredConversations(), true);
