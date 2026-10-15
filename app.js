@@ -1,4 +1,4 @@
-import { industries, conversations, channels, metrics } from './data.js';
+import { industries, conversations, channels, metrics, followups } from './data.js';
 
 const paths = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -37,13 +37,13 @@ const paths = {
 const icon = (name, extra = '') => `<svg class="icon ${extra}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] ?? paths.messages}</svg>`;
 const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const main = document.querySelector('#main');
-const titles = { overview: 'Демо', conversations: 'Диалоги', agent: 'AI-агент', analytics: 'Аналитика', knowledge: 'База знаний' };
+const titles = { overview: 'Демо', conversations: 'Диалоги', agent: 'AI-ассистент', analytics: 'Аналитика', knowledge: 'База знаний' };
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem('abb-ai-demo-v1') ?? '{}') ?? {}; } catch { /* Storage can be unavailable. */ }
 const state = {
   company: typeof saved.company === 'string' && saved.company.trim() ? saved.company.trim().slice(0, 40) : 'A Better Bid',
   industry: Object.hasOwn(industries, saved.industry) ? saved.industry : 'onboarding',
-  view: 'overview', period: 'today', channel: 'voice', count: 2, started: false, running: false, handoff: false, sound: false,
+  view: 'overview', period: 'today', channel: 'voice', deliveryChannel: 'whatsapp', count: 2, started: false, running: false, handoff: false, sound: false,
   search: '', filter: 'all', status: 'all', knowledgeSearch: '',
 };
 let timer;
@@ -79,7 +79,7 @@ function metricCards() {
   const m = metrics[state.period];
   const cards = [
     ['messages', 'Всего обращений', m.total, '', '3 канала', 'единый контекст', '3,24 14,18 24,21 34,10 45,14 55,7 66,12 77,3'],
-    ['sparkles', 'Решено AI-агентом', m.auto, '%', 'Автоматически', 'в демо-наборе', '3,25 14,22 24,23 34,16 45,18 55,9 66,11 77,3'],
+    ['messages', 'Каналы для клиента', '3', '', 'Звонок · SMS · WhatsApp', 'выбор клиента', '3,25 14,22 24,23 34,16 45,18 55,9 66,11 77,3'],
     ['clock', 'Средний диалог', m.duration, '', 'Без ожидания', 'пример сценария', '3,5 14,11 24,8 34,18 45,15 55,24 66,20 77,27'],
     ['star', 'Оценка сервиса', m.rating, '/ 5', 'Обратная связь', 'пример оценки', '3,25 14,18 24,20 34,10 45,13 55,8 66,9 77,4'],
   ];
@@ -95,9 +95,9 @@ function studio() {
     <article class="studio-card ${state.running ? 'is-running' : ''}">
       <div class="studio-top"><span class="eyebrow">ПОПРОБУЙТЕ В ДЕЙСТВИИ</span><label class="sr-only" for="scenario">Сценарий поддержки</label><select id="scenario" class="scenario-select">${Object.entries(industries).map(([key, v]) => `<option value="${key}" ${key === state.industry ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
       <h2>Один вопрос.<br><span>Понятный ответ.</span></h2>
-      <p>Аккаунт, доставка, документы.<br>AI объясняет следующий шаг.<br>Сложный вопрос — вашей команде.</p>
+      <p>Отвечает на вопросы в звонке.<br>Присылает детали в SMS или WhatsApp.<br>Сотрудник поддержки всегда рядом.</p>
       ${voiceArt()}
-      <div class="orbit-tag">${icon('database')}Контекст лота под рукой</div>
+      <div class="orbit-tag">${icon('database')}Ответы и детали под рукой</div>
       <div class="studio-actions"><button class="button primary" data-action="start">${icon(state.running ? 'pause' : 'play')}<span id="start-label">${state.running ? 'Приостановить' : 'Запустить сценарий'}</span></button><span class="studio-hint">${esc(fixture().topic)} · ~40 секунд</span></div>
       <div class="studio-bottom"><span>${icon('check-circle')}3 готовых сценария</span><span>${icon('shield')}Вымышленные данные</span></div>
     </article>
@@ -107,7 +107,7 @@ function studio() {
       <div class="conversation-header"><span class="client-avatar">${fixture().initials}</span><span class="client-identity"><strong>${fixture().client}</strong><small>${esc(fixture().topic)}</small><small id="session-description">${channelDescription()}</small></span><span class="session-state" id="session-state" role="status" aria-live="polite" aria-atomic="true"><span class="dot"></span>Предпросмотр</span></div>
       <div class="playback"><button class="play-button" data-action="start" aria-label="Запустить или приостановить сценарий">${icon('play')}</button><div class="waveform" aria-hidden="true">${Array.from({ length: 50 }, (_, i) => `<i style="height:${5 + Math.round((Math.sin(i * 2.7) + 1) * 7 + (Math.sin(i * .3) + 1) * 3)}px"></i>`).join('')}</div><span class="playback-time" id="playback-progress">2 / 7</span><button class="icon-button" data-action="next" aria-label="Следующая реплика">${icon('next')}</button></div>
       <div class="transcript" id="transcript" role="log" tabindex="0" aria-label="Демонстрационный диалог" aria-live="polite" aria-relevant="additions"></div>
-      <div class="conversation-controls"><div class="control-row"><button class="text-button" data-action="handoff">${icon('users')}Подключить оператора</button><button class="sound-button" data-action="sound" aria-pressed="false">${icon('mute')}Озвучка</button><button class="text-button" data-action="finish">Весь диалог ${icon('arrow')}</button></div><a class="policy-source" href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${icon('book')}${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a></div>
+      <div class="conversation-controls"><button class="message-preview-button" data-action="message-preview">${icon('messages')}Информация в SMS / WhatsApp ${icon('arrow')}</button><div class="control-row"><button class="text-button" data-action="handoff">${icon('users')}Связаться с поддержкой</button><button class="sound-button" data-action="sound" aria-pressed="false">${icon('mute')}Озвучка</button><button class="text-button" data-action="finish">Весь диалог ${icon('arrow')}</button></div><a class="policy-source" href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${icon('book')}${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a></div>
     </article>
   </section>`;
 }
@@ -119,11 +119,11 @@ function channelDescription() {
 function bubble(role, content, index, scenario = fixture()) {
   const policy = scenario.policyMessages.includes(index);
   const source = role === 'agent' && (index === 2 || policy);
-  return `<div class="bubble ${role}"><div class="bubble-label">${role === 'agent' ? icon('sparkles') + 'ABB · AI-помощник' : 'Клиент'}</div><div class="bubble-text">${esc(text(content))}</div>${source ? `<div class="source-line">${icon('check-circle')}${policy ? `<a href="${esc(scenario.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(scenario.sourceLabel)} ↗</a>` : esc(scenario.source)}</div>` : ''}</div>`;
+  return `<div class="bubble ${role}"><div class="bubble-label">${role === 'agent' ? icon('sparkles') + 'ABB · AI-ассистент' : 'Клиент'}</div><div class="bubble-text">${esc(text(content))}</div>${source ? `<div class="source-line">${icon('check-circle')}${policy ? `<a href="${esc(scenario.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(scenario.sourceLabel)} ↗</a>` : esc(scenario.source)}</div>` : ''}</div>`;
 }
 
 function handoffNote(scenario = fixture()) {
-  return `<div class="handoff-note"><span>${icon('users')}Предпросмотр передачи оператору</span><strong>${esc(scenario.context)} · ${esc(scenario.ref)}</strong>Причина: клиент попросил сотрудника. Контекст и история диалога подготовлены. Реальный оператор не вызывается.</div>`;
+  return `<div class="handoff-note"><span>${icon('users')}Предпросмотр связи с поддержкой</span><strong>${esc(scenario.context)} · ${esc(scenario.ref)}</strong>Причина: клиент попросил сотрудника. Контекст и история диалога подготовлены. Реальный оператор не вызывается.</div>`;
 }
 
 function updateStudio({ reset = false } = {}) {
@@ -139,7 +139,7 @@ function updateStudio({ reset = false } = {}) {
   const status = document.querySelector('#session-state');
   const done = state.count === fixture().messages.length;
   status.className = `session-state ${state.running ? 'running' : ''}`;
-  status.innerHTML = `<span class="dot"></span>${state.handoff ? 'Оператор' : state.running ? 'Сценарий идёт' : done ? 'Завершено' : !state.started ? 'Предпросмотр' : 'Пауза'}`;
+  status.innerHTML = `<span class="dot"></span>${state.handoff ? 'Поддержка' : state.running ? 'Сценарий идёт' : done ? 'Завершено' : !state.started ? 'Предпросмотр' : 'Пауза'}`;
   document.querySelector('#start-label').textContent = state.running ? 'Приостановить' : done || state.handoff ? 'Повторить сценарий' : state.started ? 'Продолжить сценарий' : 'Запустить сценарий';
   document.querySelector('[data-action="start"] .icon').outerHTML = icon(state.running ? 'pause' : done ? 'reset' : 'play');
   const play = document.querySelector('.play-button');
@@ -210,16 +210,16 @@ function chart() {
   const coords = (arr) => arr.map((v, i) => [40 + i * 75, 154 - v / (step * 4) * 128]);
   const line = (arr) => coords(arr).map(([x, y], i) => `${i ? 'L' : 'M'}${x},${y}`).join(' ');
   const points = coords(m.ai);
-  return `<article class="panel"><div class="card-heading"><div><h2>Динамика обращений</h2><p>${m.chartLabel}</p></div><div class="chart-legend"><span><i class="legend-line"></i>AI-агент</span><span><i class="legend-line dashed"></i>Оператор</span></div></div><div class="line-chart"><svg viewBox="0 0 510 170" role="img" aria-label="${esc(m.chartLabel)}: нагрузка AI и оператора. Точные значения доступны в таблице под графиком."><defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#70baff" stop-opacity=".35"/><stop offset="1" stop-color="#70baff" stop-opacity="0"/></linearGradient></defs>${[26, 58, 90, 122, 154].map((y, i) => `<line x1="40" x2="500" y1="${y}" y2="${y}" stroke="#e9ede5" stroke-dasharray="3 5"/><text x="0" y="${y + 3}" fill="#6b7569" font-size="9" font-family="Manrope, sans-serif">${fmt(step * (4 - i))}</text>`).join('')}<path d="${line(m.ai)} L490,154 L40,154Z" fill="url(#chart-fill)"/><path d="${line(m.human)}" fill="none" stroke="#99aec4" stroke-width="1.8" stroke-dasharray="4 5" stroke-linejoin="round"/><path d="${line(m.ai)}" fill="none" stroke="#0875dc" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3" fill="#fff" stroke="#0875dc" stroke-width="1.5"><title>${m.labels[i]}: AI ${m.ai[i]}, оператор ${m.human[i]}</title></circle>`).join('')}</svg><div class="chart-labels">${m.labels.map((label) => `<span>${label}</span>`).join('')}</div></div><div class="chart-summary"><span>Меньше повторяющихся вопросов для команды</span><b>Больше внимания клиентам ${icon('arrow-up').replace('class="icon ', 'class="icon inline-icon ')}</b></div><details class="chart-data"><summary>Посмотреть данные графика</summary><table><caption class="sr-only">Пример нагрузки, условные значения</caption><thead><tr><th scope="col">Интервал</th><th scope="col">AI-агент</th><th scope="col">Оператор</th></tr></thead><tbody>${m.labels.map((label, i) => `<tr><th scope="row">${label}</th><td>${m.ai[i]}</td><td>${m.human[i]}</td></tr>`).join('')}</tbody></table></details></article>`;
+  return `<article class="panel"><div class="card-heading"><div><h2>Динамика обращений</h2><p>${m.chartLabel}</p></div><div class="chart-legend"><span><i class="legend-line"></i>AI-ассистент</span><span><i class="legend-line dashed"></i>Оператор</span></div></div><div class="line-chart"><svg viewBox="0 0 510 170" role="img" aria-label="${esc(m.chartLabel)}: нагрузка AI и оператора. Точные значения доступны в таблице под графиком."><defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#70baff" stop-opacity=".35"/><stop offset="1" stop-color="#70baff" stop-opacity="0"/></linearGradient></defs>${[26, 58, 90, 122, 154].map((y, i) => `<line x1="40" x2="500" y1="${y}" y2="${y}" stroke="#e9ede5" stroke-dasharray="3 5"/><text x="0" y="${y + 3}" fill="#6b7569" font-size="9" font-family="Manrope, sans-serif">${fmt(step * (4 - i))}</text>`).join('')}<path d="${line(m.ai)} L490,154 L40,154Z" fill="url(#chart-fill)"/><path d="${line(m.human)}" fill="none" stroke="#99aec4" stroke-width="1.8" stroke-dasharray="4 5" stroke-linejoin="round"/><path d="${line(m.ai)}" fill="none" stroke="#0875dc" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3" fill="#fff" stroke="#0875dc" stroke-width="1.5"><title>${m.labels[i]}: AI ${m.ai[i]}, оператор ${m.human[i]}</title></circle>`).join('')}</svg><div class="chart-labels">${m.labels.map((label) => `<span>${label}</span>`).join('')}</div></div><div class="chart-summary"><span>Удобный способ получить ответ</span><b>Голос, сообщения и поддержка рядом ${icon('arrow-up').replace('class="icon ', 'class="icon inline-icon ')}</b></div><details class="chart-data"><summary>Посмотреть данные графика</summary><table><caption class="sr-only">Пример нагрузки, условные значения</caption><thead><tr><th scope="col">Интервал</th><th scope="col">AI-ассистент</th><th scope="col">Оператор</th></tr></thead><tbody>${m.labels.map((label, i) => `<tr><th scope="row">${label}</th><td>${m.ai[i]}</td><td>${m.human[i]}</td></tr>`).join('')}</tbody></table></details></article>`;
 }
 
 function channelPanel() {
   const m = metrics[state.period];
-  return `<article class="panel"><div class="card-heading"><div><h2>В удобном клиенту канале</h2><p>Один агент. Одна история общения.</p></div>${icon('messages')}</div><div class="channel-content"><div class="donut"><svg viewBox="0 0 120 120" role="img" aria-label="Пример распределения: звонки 55 процентов, WhatsApp 33 процента, SMS 12 процентов"><circle cx="60" cy="60" r="48" fill="none" stroke="#f0f3ea" stroke-width="13"/><circle cx="60" cy="60" r="48" fill="none" stroke="#1477cc" stroke-width="13" stroke-dasharray="161 302"/><circle cx="60" cy="60" r="48" fill="none" stroke="#6ab1f0" stroke-width="13" stroke-dasharray="94 302" stroke-dashoffset="-166"/><circle cx="60" cy="60" r="48" fill="none" stroke="#c5e1fa" stroke-width="13" stroke-dasharray="32 302" stroke-dashoffset="-265"/></svg><div class="donut-label"><strong>${m.total}</strong><small>обращений</small></div></div><div class="channel-list">${[['voice', '55', m.split[0]], ['whatsapp', '33', m.split[1]], ['sms', '12', m.split[2]]].map(([key, percentage, count]) => `<div class="channel-item"><span>${icon(channelIcon(key))}${channels[key]}</span><strong>${percentage}%</strong><small>${fmt(count)} обращений · пример</small></div>`).join('')}</div></div><div class="channels-foot">${icon('check-circle')}История сохраняется при смене канала</div></article>`;
+  return `<article class="panel"><div class="card-heading"><div><h2>В удобном клиенту канале</h2><p>Спросить голосом. Сохранить детали в сообщении.</p></div>${icon('messages')}</div><div class="channel-content"><div class="donut"><svg viewBox="0 0 120 120" role="img" aria-label="Пример распределения: звонки 55 процентов, WhatsApp 33 процента, SMS 12 процентов"><circle cx="60" cy="60" r="48" fill="none" stroke="#f0f3ea" stroke-width="13"/><circle cx="60" cy="60" r="48" fill="none" stroke="#1477cc" stroke-width="13" stroke-dasharray="161 302"/><circle cx="60" cy="60" r="48" fill="none" stroke="#6ab1f0" stroke-width="13" stroke-dasharray="94 302" stroke-dashoffset="-166"/><circle cx="60" cy="60" r="48" fill="none" stroke="#c5e1fa" stroke-width="13" stroke-dasharray="32 302" stroke-dashoffset="-265"/></svg><div class="donut-label"><strong>${m.total}</strong><small>обращений</small></div></div><div class="channel-list">${[['voice', '55', m.split[0]], ['whatsapp', '33', m.split[1]], ['sms', '12', m.split[2]]].map(([key, percentage, count]) => `<div class="channel-item"><span>${icon(channelIcon(key))}${channels[key]}</span><strong>${percentage}%</strong><small>${fmt(count)} обращений · пример</small></div>`).join('')}</div></div><div class="channels-foot">${icon('check-circle')}История сохраняется при смене канала</div></article>`;
 }
 
 function statusBadge(status) {
-  return `<span class="status ${status}">${icon(status === 'resolved' ? 'check' : 'users')}${status === 'resolved' ? 'Решено AI' : 'Оператор'}</span>`;
+  return `<span class="status ${status}">${icon(status === 'resolved' ? 'check' : 'users')}${status === 'resolved' ? 'Ответ дан' : 'Поддержка'}</span>`;
 }
 
 function table(rows, full = false) {
@@ -236,7 +236,7 @@ function publicationNotice() {
 }
 
 function overview() {
-  return `<div class="overview-intro"><span class="intro-kicker">A BETTER BID / AI CARE</span>${pageHeading('Клиенту — ясность.<br><span>Команде — время.</span>', 'Концепция AI-поддержки: меньше повторяющихся вопросов, больше внимания покупателям.')}</div>${studio()}${publicationNotice()}${buyerContext()}<div class="section-heading"><div><span class="eyebrow">ВОЗМОЖНОСТИ АНАЛИТИКИ</span><h2>Вся поддержка. На одном экране.</h2><p>Иллюстративные показатели — пример будущего кабинета.</p></div>${periodControl()}</div>${metricCards()}<section class="insight-grid" aria-label="Обзор каналов и нагрузки">${chart()}${channelPanel()}</section><section class="panel recent-panel"><div class="card-heading"><div><h2>За каждым диалогом — человек</h2><p>Последние обращения · пример рабочего дня</p></div><a class="text-button" href="#conversations">Все диалоги ${icon('arrow')}</a></div>${table(conversations.slice(0, 4))}</section>`;
+  return `<div class="overview-intro"><span class="intro-kicker">A BETTER BID / AI-АССИСТЕНТ</span>${pageHeading('Помощь — рядом.<br><span>Детали — под рукой.</span>', 'Ответы в звонке, детали — в SMS или WhatsApp. Поддержка всегда рядом.')}</div>${studio()}${followupCard()}${publicationNotice()}${buyerContext()}<div class="section-heading"><div><span class="eyebrow">УДОБСТВО ОБЩЕНИЯ</span><h2>Как клиентам удобнее общаться.</h2><p>Иллюстративные показатели — пример будущего кабинета.</p></div>${periodControl()}</div>${metricCards()}<section class="insight-grid" aria-label="Обзор каналов и нагрузки">${chart()}${channelPanel()}</section><section class="panel recent-panel"><div class="card-heading"><div><h2>За каждым диалогом — человек</h2><p>Последние обращения · пример рабочего дня</p></div><a class="text-button" href="#conversations">Все диалоги ${icon('arrow')}</a></div>${table(conversations.slice(0, 4))}</section>`;
 }
 
 function filteredConversations() {
@@ -244,22 +244,22 @@ function filteredConversations() {
 }
 
 function conversationView() {
-  return `${pageHeading('Каждый разговор — на виду.', 'Контекст, результат и история клиента в одном пространстве.', `<button class="button secondary" data-action="export">${icon('download')}Экспорт примеров</button>`)}<div class="filter-bar"><div class="search-field"><label class="sr-only" for="conversation-search">Поиск диалогов</label>${icon('search')}<input id="conversation-search" type="search" placeholder="Имя, тема или номер диалога" value="${esc(state.search)}"></div><label class="sr-only" for="channel-filter">Фильтр по каналу</label><select id="channel-filter" class="filter-select">${[['all', 'Все каналы'], ...Object.entries(channels)].map(([key, label]) => `<option value="${key}" ${key === state.filter ? 'selected' : ''}>${label}</option>`).join('')}</select><label class="sr-only" for="status-filter">Фильтр по результату</label><select id="status-filter" class="filter-select">${[['all', 'Все результаты'], ['resolved', 'Решено AI'], ['handoff', 'Передано оператору']].map(([key, label]) => `<option value="${key}" ${key === state.status ? 'selected' : ''}>${label}</option>`).join('')}</select></div><section class="panel recent-panel" id="conversation-results" aria-label="Результаты поиска диалогов" aria-live="polite">${table(filteredConversations(), true)}</section>`;
+  return `${pageHeading('Каждый разговор — на виду.', 'Контекст, результат и история клиента в одном пространстве.', `<button class="button secondary" data-action="export">${icon('download')}Экспорт примеров</button>`)}<div class="filter-bar"><div class="search-field"><label class="sr-only" for="conversation-search">Поиск диалогов</label>${icon('search')}<input id="conversation-search" type="search" placeholder="Имя, тема или номер диалога" value="${esc(state.search)}"></div><label class="sr-only" for="channel-filter">Фильтр по каналу</label><select id="channel-filter" class="filter-select">${[['all', 'Все каналы'], ...Object.entries(channels)].map(([key, label]) => `<option value="${key}" ${key === state.filter ? 'selected' : ''}>${label}</option>`).join('')}</select><label class="sr-only" for="status-filter">Фильтр по результату</label><select id="status-filter" class="filter-select">${[['all', 'Все результаты'], ['resolved', 'Ответ дан'], ['handoff', 'С поддержкой']].map(([key, label]) => `<option value="${key}" ${key === state.status ? 'selected' : ''}>${label}</option>`).join('')}</select></div><section class="panel recent-panel" id="conversation-results" aria-label="Результаты поиска диалогов" aria-live="polite">${table(filteredConversations(), true)}</section>`;
 }
 
 function agentView() {
-  return `${pageHeading('Не просто отвечает. Помогает.', 'Посмотрите, как AI понимает запрос и работает с данными компании.', `<button class="button secondary" data-action="settings">${icon('settings')}Настроить компанию</button>`)}${studio()}${buyerContext()}<section class="feature-grid" aria-label="Принципы AI-агента">${[
-    ['database', 'Сначала факты', 'Статусы, время и условия берутся из базы знаний и системы компании. В демо их заменяет вымышленный набор данных.'],
-    ['messages', 'Один контекст', 'Голос и сообщения — части одного клиентского пути. Агент сохраняет суть запроса для следующего шага.'],
-    ['users', 'Человек рядом', 'По запросу клиента агент подготавливает передачу сотруднику с кратким содержанием и историей разговора.'],
-  ].map(([i, title, description]) => `<article class="feature-card"><span class="feature-icon">${icon(i)}</span><h2>${title}</h2><p>${description}</p></article>`).join('')}</section><section class="panel agent-policies"><div class="card-heading"><h2>Правила, которым можно доверять</h2></div><ul><li>${icon('check-circle')}Представляется AI-помощником в начале разговора</li><li>${icon('shield')}Не обещает действий, для которых нет подключённого инструмента</li><li>${icon('database')}Использует конкретный демо-профиль или лот из выбранного сценария</li><li>${icon('users')}Готовит контекст для сотрудника, если клиент просит человека</li></ul></section>`;
+  return `${pageHeading('AI-ассистент для удобства клиента.', 'Ответит на вопросы в звонке, подготовит детали в сообщении и поможет связаться с поддержкой.', `<button class="button secondary" data-action="settings">${icon('settings')}Настроить компанию</button>`)}${studio()}${followupCard()}${buyerContext()}<section class="feature-grid" aria-label="Как ассистент помогает клиенту">${[
+    ['phone', 'Ответить в звонке', 'Клиент задаёт вопрос обычными словами. Ассистент объясняет порядок действий и отвечает по доступным данным.'],
+    ['messages', 'Прислать детали', 'Ссылка, инструкция или краткий итог разговора — в SMS или WhatsApp, чтобы не записывать информацию на слух.'],
+    ['users', 'Поддержка рядом', 'Клиент может обратиться к сотруднику. Ассистент помогает передать вопрос и контекст разговора.'],
+  ].map(([i, title, description]) => `<article class="feature-card"><span class="feature-icon">${icon(i)}</span><h2>${title}</h2><p>${description}</p></article>`).join('')}</section><section class="panel agent-policies"><div class="card-heading"><h2>Ассистент и поддержка — рядом с клиентом</h2></div><ul><li>${icon('check-circle')}Представляется AI-ассистентом в начале разговора</li><li>${icon('shield')}Отвечает по данным и объясняет, если их недостаточно</li><li>${icon('messages')}Помогает сохранить нужную информацию в удобном канале</li><li>${icon('users')}Сотрудник поддержки доступен как следующий шаг по желанию клиента</li></ul></section>`;
 }
 
 function analyticsView() {
-  return `${pageHeading('Видеть больше. Решать точнее.', 'Как AI помогает команде и какие вопросы требуют её внимания.', periodControl())}<div class="analytics-note">${icon('info')}Иллюстративные показатели. Они показывают возможности интерфейса и не являются результатами действующего сервиса.</div>${metricCards()}<section class="insight-grid" aria-label="Аналитика обращений">${chart()}${channelPanel()}</section><section class="feature-grid">${[
-    ['sparkles', 'Рутинные вопросы', 'Регистрация, Buying Power, доставка и документы — повторяющиеся темы покупателей авто.'],
-    ['users', 'Осмысленная передача', 'Спорные случаи и просьба о сотруднике остаются у команды. Контекст уже собран.'],
-    ['chart', 'Измеримый пилот', 'На реальном пилоте сравниваем долю решённых запросов, время ожидания и качество по согласованной выборке.'],
+  return `${pageHeading('Общение глазами клиента.', 'Какие каналы удобны покупателям и как проходит обращение.', periodControl())}<div class="analytics-note">${icon('info')}Иллюстративные показатели. Они показывают возможности интерфейса и не являются результатами действующего сервиса.</div>${metricCards()}<section class="insight-grid" aria-label="Аналитика обращений">${chart()}${channelPanel()}</section><section class="feature-grid">${[
+    ['phone', 'Вопросы в звонке', 'Объяснить голосом, уточнить детали и понять следующий шаг без поиска по разделам сайта.'],
+    ['messages', 'Информация под рукой', 'Получить ссылку или памятку в SMS или WhatsApp и вернуться к ней после разговора.'],
+    ['users', 'Живая поддержка', 'Обратиться к сотруднику, когда нужна дополнительная помощь или персональное решение.'],
   ].map(([i, title, description]) => `<article class="feature-card"><span class="feature-icon">${icon(i)}</span><h2>${title}</h2><p>${description}</p></article>`).join('')}</section>`;
 }
 
@@ -310,7 +310,7 @@ function showDetail(id) {
   const handed = row.status === 'handoff';
   // A handoff record has its own coherent transcript, not a resolved conversation.
   const messages = handed ? [
-    ['agent', 'Здравствуйте! Я AI-помощник компании «{company}». Чем могу помочь?'],
+    ['agent', 'Здравствуйте! Я AI-ассистент компании «{company}». Чем могу помочь?'],
     ['client', `Пожалуйста, подключите специалиста. ${scenario.context}. Номер: ${scenario.ref}.`],
     ['agent', 'Подготовлю для сотрудника историю разговора и номер вашего демо-лота.'],
   ] : scenario.messages;
@@ -318,8 +318,25 @@ function showDetail(id) {
   openDialog('detail-dialog');
 }
 
+function deliveryChoices() {
+  return `<div class="delivery-choices" role="group" aria-label="Канал получения информации">${['whatsapp', 'sms'].map((key) => `<button data-delivery="${key}" aria-pressed="${state.deliveryChannel === key}">${icon('messages')}${channels[key]}</button>`).join('')}</div>`;
+}
+
+function messagePreviewBody() {
+  return `<span class="message-recipient">${esc(fixture().client)} · ${esc(fixture().ref)}</span><p>${esc(followups[state.industry][state.deliveryChannel])}</p><a href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a>`;
+}
+
+function followupCard() {
+  return `<section class="followup-card" aria-label="Информация после звонка"><div class="followup-copy"><span class="eyebrow">ЗВОНОК → SMS ИЛИ WHATSAPP</span><h2>Не нужно записывать.<br>Всё важное — в сообщении.</h2><p>Во время разговора клиент может попросить ссылку или памятку в удобный канал. К информации легко вернуться после звонка.</p>${deliveryChoices()}<span class="preview-disclaimer">Предпросмотр на вымышленных данных. Отправка отключена.</span></div><div class="message-device"><div class="message-device-header">${icon('messages')}<strong data-delivery-label>${channels[state.deliveryChannel]}</strong><span>Пример сообщения</span></div><div class="message-preview" data-message-body aria-live="polite">${messagePreviewBody()}</div><span class="message-device-footer">${icon('check-circle')}Ссылка и следующий шаг в одном месте</span></div></section>`;
+}
+
+function messageDialog() {
+  document.querySelector('#message-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">ПОСЛЕ РАЗГОВОРА</span><button class="icon-button" data-close aria-label="Закрыть пример сообщения">${icon('close')}</button></div><h2 id="message-title">Нужная информация — под рукой.</h2><p class="muted">Клиент выбирает, куда получить детали разговора: SMS или WhatsApp.</p>${deliveryChoices()}<div class="message-device"><div class="message-device-header">${icon('messages')}<strong data-delivery-label>${channels[state.deliveryChannel]}</strong><span>Пример сообщения</span></div><div class="message-preview" data-message-body aria-live="polite">${messagePreviewBody()}</div></div><p class="preview-disclaimer">Это готовый образец на вымышленных данных. Сообщение не отправляется, номер телефона не запрашивается.</p><div class="dialog-actions"><button class="button secondary" data-close>Вернуться к разговору</button></div>`;
+  openDialog('message-dialog');
+}
+
 function presentation() {
-  document.querySelector('#presentation-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">A BETTER BID / КОНЦЕПЦИЯ AI CARE</span><button class="icon-button" data-close aria-label="Закрыть презентацию">${icon('close')}</button></div><div class="presentation-hero"><h2 id="presentation-title">Покупателю — ясность.<br>Команде — время.</h2><p class="presentation-lead">AI-помощник для «${esc(state.company)}» отвечает на повторяющиеся вопросы, находит нужные данные и помогает сотруднику продолжить разговор.</p></div><div class="flow" role="img" aria-label="Путь обращения: клиент, AI-агент, данные компании, решение или сотрудник"><div class="flow-node">${icon('user')}Покупатель</div>${icon('arrow')}<div class="flow-node">${icon('sparkles')}AI-агент</div>${icon('arrow')}<div class="flow-node">${icon('database')}FAQ + контекст лота</div>${icon('arrow')}<div class="flow-node">${icon('check-circle')}Решение / сотрудник</div></div><div class="presentation-grid"><article class="presentation-item"><span>01 / УСЛЫШАТЬ</span><h3>На связи с клиентом</h3><p>Допуск к торгам, доставка и документы. Покупатель понимает, что происходит и что делать дальше.</p></article><article class="presentation-item"><span>02 / ПОНЯТЬ</span><h3>Отвечать по фактам</h3><p>Публичные FAQ, контекст профиля и лота. Подтверждённые статусы вместо вымышленных обещаний.</p></article><article class="presentation-item"><span>03 / ПОМОЧЬ</span><h3>Подключить команду</h3><p>Специалист получает причину обращения, номер демо-лота и историю разговора.</p></article></div><p class="presentation-foot"><strong>Что показываем сейчас:</strong> интерактивный прототип с готовыми русскими сценариями и вымышленными метриками.<br><strong>Следующий шаг:</strong> выбрать один процесс, подключить согласованные источники и проверить качество на пилоте. Реальные звонки, CRM и отправка сообщений в этом демо отключены.</p><p class="presentation-document"><a href="./capabilities.md" download>Скачать Markdown: возможности и примеры данных ↗</a></p><div class="dialog-actions"><button class="button secondary" data-action="presentation-settings">Под мою компанию ${icon('settings')}</button><button class="button primary" data-action="presentation-start">Посмотреть сценарий ${icon('play')}</button></div>`;
+  document.querySelector('#presentation-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">A BETTER BID / КЛИЕНТСКИЙ AI-АССИСТЕНТ</span><button class="icon-button" data-close aria-label="Закрыть презентацию">${icon('close')}</button></div><div class="presentation-hero"><h2 id="presentation-title">Помощь — рядом.<br>Детали — под рукой.</h2><p class="presentation-lead">AI-ассистент для «${esc(state.company)}» помогает клиенту получить ответ в звонке, сохранить нужную информацию в SMS или WhatsApp и обратиться к сотруднику поддержки.</p></div><div class="flow" role="img" aria-label="Путь клиента: вопрос в звонке, ответ ассистента, информация в SMS или WhatsApp; сотрудник поддержки рядом"><div class="flow-node">${icon('phone')}Вопрос в звонке</div>${icon('arrow')}<div class="flow-node">${icon('sparkles')}Понятный ответ</div>${icon('arrow')}<div class="flow-node">${icon('messages')}Детали в SMS / WhatsApp</div>${icon('arrow')}<div class="flow-node">${icon('users')}Поддержка рядом</div></div><div class="presentation-grid"><article class="presentation-item"><span>01 / СПРОСИТЬ</span><h3>Ответ в разговоре</h3><p>Клиент задаёт вопрос о регистрации, доставке или документах и получает объяснение по доступным данным.</p></article><article class="presentation-item"><span>02 / СОХРАНИТЬ</span><h3>Информация с собой</h3><p>Инструкция, ссылка или итог разговора приходит в выбранный канал. Ничего не нужно записывать на слух.</p></article><article class="presentation-item"><span>03 / ОБРАТИТЬСЯ</span><h3>Сотрудник рядом</h3><p>Клиент может продолжить с живой поддержкой. Ассистент помогает передать вопрос и историю общения.</p></article></div><p class="presentation-foot"><strong>Что показываем сейчас:</strong> готовые русские диалоги и предпросмотр сообщений на вымышленных данных.<br><strong>Следующий шаг:</strong> согласовать источники, телефонию и каналы отправки, затем проверить клиентский путь на пилоте. Реальные звонки, CRM и отправка сообщений в этом демо отключены.</p><p class="presentation-document"><a href="./capabilities.md" download>Скачать Markdown: возможности и примеры данных ↗</a></p><div class="dialog-actions"><button class="button secondary" data-action="presentation-settings">Под мою компанию ${icon('settings')}</button><button class="button primary" data-action="presentation-start">Посмотреть сценарий ${icon('play')}</button></div>`;
   openDialog('presentation-dialog');
 }
 
@@ -336,7 +353,7 @@ function persist() {
 
 function exportExamples() {
   const csvCell = (v) => `"${String(v).replaceAll('"', '""')}"`;
-  const rows = [['ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ — вымышленные примеры'], ['Номер', 'Клиент', 'Канал', 'Тема', 'Результат', 'Длительность'], ...filteredConversations().map((r) => [r.id, r.name, channels[r.channel], r.topic, r.status === 'resolved' ? 'Решено AI' : 'Оператор', r.duration])];
+  const rows = [['ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ — вымышленные примеры'], ['Номер', 'Клиент', 'Канал', 'Тема', 'Результат', 'Длительность'], ...filteredConversations().map((r) => [r.id, r.name, channels[r.channel], r.topic, r.status === 'resolved' ? 'Ответ дан' : 'Поддержка', r.duration])];
   const blob = new Blob(['\uFEFF' + rows.map((row) => row.map(csvCell).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'abetterbid-demo-conversations.csv'; a.click();
@@ -350,6 +367,14 @@ document.addEventListener('click', (event) => {
   if (target.classList.contains('skip-link')) { event.preventDefault(); main.focus(); main.scrollIntoView(); return; }
   if (target.hasAttribute('data-close')) { target.closest('dialog').close(); return; }
   if (target.dataset.open) { showDetail(target.dataset.open); return; }
+  if (target.dataset.delivery) {
+    if (!['whatsapp', 'sms'].includes(target.dataset.delivery)) return;
+    state.deliveryChannel = target.dataset.delivery;
+    document.querySelectorAll('[data-delivery]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.delivery === state.deliveryChannel)));
+    document.querySelectorAll('[data-delivery-label]').forEach((el) => { el.textContent = channels[state.deliveryChannel]; });
+    document.querySelectorAll('[data-message-body]').forEach((el) => { el.innerHTML = messagePreviewBody(); });
+    return;
+  }
   if (target.dataset.channel) {
     stop(); state.channel = target.dataset.channel;
     document.querySelectorAll('[data-channel]').forEach((button) => {
@@ -363,6 +388,7 @@ document.addEventListener('click', (event) => {
   const action = target.dataset.action;
   if (action === 'settings') settings();
   else if (action === 'presentation') presentation();
+  else if (action === 'message-preview') messageDialog();
   else if (action === 'start') start();
   else if (action === 'next') {
     stop(); state.started = true; state.count = Math.min(state.count + 1, fixture().messages.length); updateStudio();

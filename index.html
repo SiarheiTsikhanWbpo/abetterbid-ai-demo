@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#2453ff">
-  <meta name="description" content="A Better Bid AI Care — концепция поддержки покупателей: допуск к торгам, доставка и документы.">
+  <meta name="description" content="AI-ассистент A Better Bid: ответы в звонке, информация в SMS и WhatsApp, сотрудник поддержки рядом.">
   <title>A Better Bid — AI Care Demo</title>
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
   <link rel="preload" href="./assets/manrope.ttf" as="font" type="font/ttf" crossorigin>
@@ -20,15 +20,15 @@
     <nav id="navigation">
       <a href="#overview" data-view="overview"><span data-icon="grid"></span><span>Демо</span></a>
       <a href="#conversations" data-view="conversations"><span data-icon="messages"></span><span>Диалоги</span><span class="nav-count">8</span></a>
-      <a href="#agent" data-view="agent"><span data-icon="sparkles"></span><span>AI-агент</span></a>
+      <a href="#agent" data-view="agent"><span data-icon="sparkles"></span><span>AI-ассистент</span></a>
       <a href="#analytics" data-view="analytics"><span data-icon="chart"></span><span>Аналитика</span></a>
       <a href="#knowledge" data-view="knowledge"><span data-icon="book"></span><span>База знаний</span></a>
     </nav>
     <div class="sidebar-bottom">
-      <div class="personalize-card"><span class="tiny-spark" data-icon="sparkles"></span><strong>Больше заботы. Меньше рутины.</strong><p>Аккаунт, доставка, документы.<br>Контекст на каждом этапе.</p><button data-action="settings">Настроить демо <span data-icon="arrow"></span></button></div>
+      <div class="personalize-card"><span class="tiny-spark" data-icon="sparkles"></span><strong>Клиенту удобно. Поддержка рядом.</strong><p>Ответ в звонке.<br>Детали в SMS или WhatsApp.</p><button data-action="settings">Настроить демо <span data-icon="arrow"></span></button></div>
       <a class="help-link document-link" href="./capabilities.md" download><span data-icon="book"></span>Возможности и данные<span data-icon="download"></span></a>
       <button class="help-link" data-action="presentation"><span data-icon="help"></span>О концепции<span data-icon="arrow-up"></span></button>
-      <div class="profile"><span class="profile-avatar">ВЫ</span><span><strong>A Better Bid</strong><small>Концепция AI-поддержки</small></span><span class="profile-dot"></span></div>
+      <div class="profile"><span class="profile-avatar">ВЫ</span><span><strong>A Better Bid</strong><small>Клиентский AI-ассистент</small></span><span class="profile-dot"></span></div>
     </div>
   </aside>
   <div class="app-shell">
@@ -48,6 +48,7 @@
   </dialog>
   <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title"></dialog>
   <dialog id="presentation-dialog" class="presentation-dialog" aria-labelledby="presentation-title"></dialog>
+  <dialog id="message-dialog" class="message-dialog" aria-labelledby="message-title"></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
