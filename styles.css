@@ -94,7 +94,7 @@ main{padding:34px 36px 0;max-width:1580px;margin:auto;min-width:0;min-height:cal
 .scenario-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .scenario-option{position:relative;min-width:0;cursor:pointer}
 .scenario-option input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.scenario-choice{display:flex;align-items:center;gap:12px;min-height:76px;padding:14px 16px;border:1px solid #a8b6d5;border-radius:15px;background:var(--surface);transition:background .18s,border-color .18s,box-shadow .18s;pointer-events:none}
+.scenario-choice{display:flex;align-items:center;gap:12px;min-height:76px;height:100%;padding:14px 16px;border:1px solid #a8b6d5;border-radius:15px;background:var(--surface);transition:background .18s,border-color .18s,box-shadow .18s;pointer-events:none}
 .scenario-symbol{display:grid;place-items:center;flex-shrink:0;width:38px;height:38px;border-radius:11px;background:var(--soft);color:var(--primary)}
 .scenario-copy{min-width:0}
 .scenario-copy strong{display:block;font-size:15px;line-height:1.4}
@@ -368,6 +368,7 @@ dialog input,dialog select{width:100%;padding:12px 14px;min-height:48px;border:1
 .row-open{min-width:44px}
 .top-help{min-width:44px}
 @media(max-width:1050px){.scenario-choice{gap:9px;padding:12px}.scenario-symbol{width:32px;height:32px}.scenario-copy small{font-size:11px}.scenario-copy strong{font-size:14px}}
+@media(min-width:601px) and (max-width:900px){.scenario-symbol{display:none}}
 @media(max-width:600px){
   html{scroll-padding-bottom:100px}
   .scenario-picker{margin-bottom:18px}
