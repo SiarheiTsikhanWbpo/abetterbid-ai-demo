@@ -1,4 +1,4 @@
-import { industries, conversations, channels, metrics, followups } from './data.js?v=20261015-ux';
+import { industries, conversations, channels, metrics, followups } from './data.js?v=20261015-selectors';
 
 const paths = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -68,8 +68,16 @@ function toast(message) {
   toastTimer = setTimeout(() => element.classList.remove('visible'), 4200);
 }
 
+function choiceControl(name, label, options, value, variant = '') {
+  return `<fieldset class="choice-field ${variant}"><legend>${esc(label)}</legend><div class="choice-options">${options.map(([key, title]) => `<label class="choice-option"><input type="radio" name="${name}" id="${name}-${key}" value="${key}" ${key === value ? 'checked' : ''}><span class="choice-label"><span class="choice-indicator">${icon('check')}</span><span>${esc(title)}</span></span></label>`).join('')}</div></fieldset>`;
+}
+
+function focusChoice(name) {
+  document.querySelector(`input[name="${name}"]:checked`)?.focus({ preventScroll: true });
+}
+
 function periodControl() {
-  return `<div class="period-select"><label for="period" aria-label="Период показателей">${icon('calendar')}</label><select id="period" aria-label="Период показателей">${[['today', 'Сегодня'], ['week', '7 дней'], ['month', '30 дней']].map(([key, label]) => `<option value="${key}" ${state.period === key ? 'selected' : ''}>${label}</option>`).join('')}</select></div>`;
+  return choiceControl('period', 'Период показателей', [['today', 'Сегодня'], ['week', '7 дней'], ['month', '30 дней']], state.period, 'period-control');
 }
 
 function pageHeading(title, subtitle, action = '') {
@@ -258,7 +266,7 @@ function filteredConversations() {
 }
 
 function conversationView() {
-  return `${pageHeading('Каждый разговор — на виду.', 'Контекст, результат и история клиента в одном пространстве.', `<button class="button secondary" data-action="export">${icon('download')}Экспорт примеров</button>`)}<div class="filter-bar"><div class="search-field"><label class="sr-only" for="conversation-search">Поиск диалогов</label>${icon('search')}<input id="conversation-search" type="search" placeholder="Имя, тема или номер диалога" value="${esc(state.search)}"></div><label class="sr-only" for="channel-filter">Фильтр по каналу</label><select id="channel-filter" class="filter-select">${[['all', 'Все каналы'], ...Object.entries(channels)].map(([key, label]) => `<option value="${key}" ${key === state.filter ? 'selected' : ''}>${label}</option>`).join('')}</select><label class="sr-only" for="status-filter">Фильтр по результату</label><select id="status-filter" class="filter-select">${[['all', 'Все результаты'], ['resolved', 'Ответ дан'], ['handoff', 'С поддержкой']].map(([key, label]) => `<option value="${key}" ${key === state.status ? 'selected' : ''}>${label}</option>`).join('')}</select></div><section class="panel recent-panel" id="conversation-results" aria-label="Результаты поиска диалогов" aria-live="polite">${table(filteredConversations(), true)}</section>`;
+  return `${pageHeading('Каждый разговор — на виду.', 'Контекст, результат и история клиента в одном пространстве.', `<button class="button secondary" data-action="export">${icon('download')}Экспорт примеров</button>`)}<div class="filter-bar conversation-filters"><div class="search-field"><label class="sr-only" for="conversation-search">Поиск диалогов</label>${icon('search')}<input id="conversation-search" type="search" placeholder="Имя, тема или номер диалога" value="${esc(state.search)}"></div><div class="conversation-filter-options">${choiceControl('channel-filter', 'Канал', [['all', 'Все каналы'], ...Object.entries(channels)], state.filter)}${choiceControl('status-filter', 'Результат', [['all', 'Все результаты'], ['resolved', 'Ответ дан'], ['handoff', 'С поддержкой']], state.status)}</div></div><section class="panel recent-panel" id="conversation-results" aria-label="Результаты поиска диалогов" aria-live="polite">${table(filteredConversations(), true)}</section>`;
 }
 
 function agentView() {
@@ -314,7 +322,7 @@ function openDialog(id) {
 function settings() {
   settingsOpener = document.activeElement;
   document.querySelector('#company-name').value = state.company;
-  document.querySelector('#industry').value = state.industry;
+  document.querySelector('#settings-scenario-options').innerHTML = choiceControl('industry', 'Сценарий поддержки', Object.entries(industries).map(([key, item]) => [key, item.name]), state.industry, 'settings-choices');
   openDialog('settings-dialog');
 }
 
@@ -437,10 +445,10 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('change', (event) => {
   const el = event.target;
-  if (el.id === 'period') { state.period = el.value; render(); document.querySelector('#period')?.focus(); }
+  if (el.name === 'period') { state.period = el.value; render(); focusChoice('period'); }
   else if (el.name === 'scenario') { setIndustry(el.value); focusScenario(); }
-  else if (el.id === 'channel-filter' || el.id === 'status-filter') {
-    if (el.id === 'channel-filter') state.filter = el.value; else state.status = el.value;
+  else if (el.name === 'channel-filter' || el.name === 'status-filter') {
+    if (el.name === 'channel-filter') state.filter = el.value; else state.status = el.value;
     document.querySelector('#conversation-results').innerHTML = table(filteredConversations(), true);
   }
 });
@@ -460,7 +468,7 @@ document.querySelector('#settings-form').addEventListener('submit', (event) => {
   const name = document.querySelector('#company-name');
   if (!name.value.trim()) { name.setCustomValidity('Введите название компании'); name.reportValidity(); return; }
   state.company = name.value.trim().slice(0, 40);
-  state.industry = document.querySelector('#industry').value;
+  state.industry = document.querySelector('input[name="industry"]:checked').value;
   stop(); state.count = 2; state.started = false; state.handoff = false; state.knowledgeSearch = '';
   persist(); document.querySelector('#settings-dialog').close(); render();
   const focusTarget = [settingsOpener, main.querySelector('[data-action="settings"]'), ...document.querySelectorAll('[data-action="settings"], [data-action="presentation"]')]
