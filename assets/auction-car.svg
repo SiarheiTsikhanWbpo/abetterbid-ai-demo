@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="440" height="310" viewBox="0 0 440 310">
   <defs>
-    <linearGradient id="body" x1="0" y1="0" x2=".5" y2="1"><stop stop-color="#d4e8ff"/><stop offset=".42" stop-color="#85b4df"/><stop offset=".58" stop-color="#477caa"/><stop offset="1" stop-color="#1d436c"/></linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2=".5" y2="1"><stop stop-color="#ffffff"/><stop offset=".42" stop-color="#e7f2ff"/><stop offset=".58" stop-color="#90bce9"/><stop offset="1" stop-color="#3267ab"/></linearGradient>
     <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#163551"/><stop offset=".55" stop-color="#406582"/><stop offset="1" stop-color="#0d233b"/></linearGradient>
     <radialGradient id="light"><stop stop-color="#0084ff" stop-opacity=".35"/><stop offset="1" stop-color="#0084ff" stop-opacity="0"/></radialGradient>
     <radialGradient id="rim"><stop stop-color="#bcd7ec"/><stop offset=".2" stop-color="#446681"/><stop offset=".8" stop-color="#a0bed3"/><stop offset="1" stop-color="#334e68"/></radialGradient>

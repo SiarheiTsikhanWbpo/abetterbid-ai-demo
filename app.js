@@ -37,7 +37,7 @@ const paths = {
 const icon = (name, extra = '') => `<svg class="icon ${extra}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] ?? paths.messages}</svg>`;
 const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const main = document.querySelector('#main');
-const titles = { overview: 'Обзор', conversations: 'Диалоги', agent: 'AI-агент', analytics: 'Аналитика', knowledge: 'База знаний' };
+const titles = { overview: 'Демо', conversations: 'Диалоги', agent: 'AI-агент', analytics: 'Аналитика', knowledge: 'База знаний' };
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem('abb-ai-demo-v1') ?? '{}') ?? {}; } catch { /* Storage can be unavailable. */ }
 const state = {
@@ -91,7 +91,25 @@ function voiceArt() {
 }
 
 function studio() {
-  return `<section class="studio-grid ${state.view === 'agent' ? 'full-studio' : ''}" aria-label="Интерактивная демонстрация"><article class="studio-card ${state.running ? 'is-running' : ''}"><div class="studio-top"><span class="eyebrow">AI CARE / ДЕМО</span><label class="sr-only" for="scenario">Сценарий поддержки</label><select id="scenario" class="scenario-select">${Object.entries(industries).map(([key, v]) => `<option value="${key}" ${key === state.industry ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div><h2>До торгов.<br>После покупки.<br>Всегда рядом.</h2><p>Помогаем покупателю разобраться<br>с аккаунтом, доставкой<br>и документами на автомобиль.</p>${voiceArt()}<div class="orbit-tag tag-understand">${icon('check-circle')}Понимает покупателя</div><div class="orbit-tag tag-context">${icon('database')}Знает этап покупки</div><div class="studio-actions"><button class="button primary" data-action="start">${icon(state.running ? 'pause' : 'play')}<span id="start-label">${state.running ? 'Приостановить' : 'Запустить сценарий'}</span></button><span class="studio-hint">${esc(fixture().topic)} · ~40 секунд</span></div><div class="studio-bottom"><span>${icon('shield')}Ответы по данным</span><span>${icon('users')}Человек рядом</span><span>${icon('globe')}На языке клиента</span></div></article><article class="conversation-card"><div class="card-heading"><div><h2>${icon('headset')}Разговор с AI</h2><p>Готовый сценарий · данные вымышлены</p></div><div class="channel-tabs" role="group" aria-label="Канал сценария">${Object.entries(channels).map(([key, label]) => `<button data-channel="${key}" aria-pressed="${state.channel === key}" class="${state.channel === key ? 'active' : ''}">${icon(channelIcon(key))}${label}</button>`).join('')}</div></div><div class="conversation-header"><span class="client-avatar">${fixture().initials}</span><span class="client-identity"><strong>${fixture().client} · ${fixture().topic}</strong><small id="session-description">${channelDescription()}</small></span><span class="session-state" id="session-state" role="status" aria-live="polite"><span class="dot"></span>Предпросмотр</span></div><div class="transcript" id="transcript" role="log" aria-label="Демонстрационный диалог" aria-live="polite" aria-relevant="additions"></div><div class="conversation-controls"><div class="playback"><button class="play-button" data-action="start" aria-label="Запустить или приостановить сценарий">${icon('play')}</button><div class="waveform" aria-hidden="true">${Array.from({ length: 50 }, (_, i) => `<i style="height:${5 + Math.round((Math.sin(i * 2.7) + 1) * 7 + (Math.sin(i * .3) + 1) * 3)}px"></i>`).join('')}</div><span class="playback-time" id="playback-progress">2 / 7</span><button class="icon-button" data-action="next" aria-label="Следующая реплика">${icon('next')}</button></div><div class="control-row"><button class="text-button" data-action="handoff">${icon('users')}Подключить оператора</button><button class="sound-button" data-action="sound" aria-pressed="false">${icon('mute')}Озвучка</button><button class="text-button" data-action="finish">Весь диалог ${icon('arrow')}</button></div><a class="policy-source" href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${icon('book')}${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a></div></article></section>`;
+  return `<section class="studio-grid ${state.view === 'agent' ? 'full-studio' : ''}" aria-label="Интерактивная демонстрация">
+    <article class="studio-card ${state.running ? 'is-running' : ''}">
+      <div class="studio-top"><span class="eyebrow">ПОПРОБУЙТЕ В ДЕЙСТВИИ</span><label class="sr-only" for="scenario">Сценарий поддержки</label><select id="scenario" class="scenario-select">${Object.entries(industries).map(([key, v]) => `<option value="${key}" ${key === state.industry ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
+      <h2>Один вопрос.<br><span>Понятный ответ.</span></h2>
+      <p>Аккаунт, доставка, документы.<br>AI объясняет следующий шаг.<br>Сложный вопрос — вашей команде.</p>
+      ${voiceArt()}
+      <div class="orbit-tag">${icon('database')}Контекст лота под рукой</div>
+      <div class="studio-actions"><button class="button primary" data-action="start">${icon(state.running ? 'pause' : 'play')}<span id="start-label">${state.running ? 'Приостановить' : 'Запустить сценарий'}</span></button><span class="studio-hint">${esc(fixture().topic)} · ~40 секунд</span></div>
+      <div class="studio-bottom"><span>${icon('check-circle')}3 готовых сценария</span><span>${icon('shield')}Вымышленные данные</span></div>
+    </article>
+    <article class="conversation-card" aria-label="Демо-студия">
+      <div class="card-heading"><div><span class="eyebrow">ДЕМО-СТУДИЯ</span><h2>${icon('headset')}Смотрите, как это работает</h2></div><span class="studio-mode">Готовый сценарий</span></div>
+      <div class="channel-tabs" role="group" aria-label="Канал сценария">${Object.entries(channels).map(([key, label]) => `<button data-channel="${key}" aria-pressed="${state.channel === key}" class="${state.channel === key ? 'active' : ''}">${icon(channelIcon(key))}${label}</button>`).join('')}</div>
+      <div class="conversation-header"><span class="client-avatar">${fixture().initials}</span><span class="client-identity"><strong>${fixture().client}</strong><small>${esc(fixture().topic)}</small><small id="session-description">${channelDescription()}</small></span><span class="session-state" id="session-state" role="status" aria-live="polite" aria-atomic="true"><span class="dot"></span>Предпросмотр</span></div>
+      <div class="playback"><button class="play-button" data-action="start" aria-label="Запустить или приостановить сценарий">${icon('play')}</button><div class="waveform" aria-hidden="true">${Array.from({ length: 50 }, (_, i) => `<i style="height:${5 + Math.round((Math.sin(i * 2.7) + 1) * 7 + (Math.sin(i * .3) + 1) * 3)}px"></i>`).join('')}</div><span class="playback-time" id="playback-progress">2 / 7</span><button class="icon-button" data-action="next" aria-label="Следующая реплика">${icon('next')}</button></div>
+      <div class="transcript" id="transcript" role="log" tabindex="0" aria-label="Демонстрационный диалог" aria-live="polite" aria-relevant="additions"></div>
+      <div class="conversation-controls"><div class="control-row"><button class="text-button" data-action="handoff">${icon('users')}Подключить оператора</button><button class="sound-button" data-action="sound" aria-pressed="false">${icon('mute')}Озвучка</button><button class="text-button" data-action="finish">Весь диалог ${icon('arrow')}</button></div><a class="policy-source" href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${icon('book')}${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a></div>
+    </article>
+  </section>`;
 }
 
 function channelDescription() {
@@ -111,12 +129,13 @@ function handoffNote(scenario = fixture()) {
 function updateStudio({ reset = false } = {}) {
   const transcript = document.querySelector('#transcript');
   if (!transcript) return;
+  const nearBottom = transcript.scrollHeight - transcript.scrollTop - transcript.clientHeight < 48;
   if (reset) transcript.replaceChildren();
   const existing = transcript.querySelectorAll('.bubble').length;
   fixture().messages.slice(existing, state.count).forEach(([role, content], offset) => transcript.insertAdjacentHTML('beforeend', bubble(role, content, existing + offset)));
   transcript.querySelector('.handoff-note')?.remove();
   if (state.handoff) transcript.insertAdjacentHTML('beforeend', handoffNote());
-  transcript.scrollTop = transcript.scrollHeight;
+  if (reset || nearBottom) transcript.scrollTop = transcript.scrollHeight;
   const status = document.querySelector('#session-state');
   const done = state.count === fixture().messages.length;
   status.className = `session-state ${state.running ? 'running' : ''}`;
@@ -125,12 +144,13 @@ function updateStudio({ reset = false } = {}) {
   document.querySelector('[data-action="start"] .icon').outerHTML = icon(state.running ? 'pause' : done ? 'reset' : 'play');
   const play = document.querySelector('.play-button');
   play.innerHTML = icon(state.running ? 'pause' : done ? 'reset' : 'play');
-  play.setAttribute('aria-label', state.running ? 'Приостановить сценарий' : done ? 'Повторить сценарий' : 'Запустить сценарий');
+  play.setAttribute('aria-label', state.running ? 'Приостановить сценарий' : done || state.handoff ? 'Повторить сценарий' : state.started ? 'Продолжить сценарий' : 'Запустить сценарий');
   document.querySelector('.studio-card').classList.toggle('is-running', state.running);
   document.querySelector('#playback-progress').textContent = `${state.count} / ${fixture().messages.length}`;
   document.querySelectorAll('.waveform i').forEach((bar, i) => bar.classList.toggle('played', i / 50 < state.count / fixture().messages.length));
   document.querySelector('[data-action="next"]').disabled = done || state.handoff;
   document.querySelector('[data-action="handoff"]').disabled = state.handoff;
+  document.querySelector('[data-action="finish"]').disabled = state.handoff || done;
   const sound = document.querySelector('[data-action="sound"]');
   sound.innerHTML = `${icon(state.sound ? 'sound' : 'mute')}Озвучка`;
   sound.setAttribute('aria-pressed', String(state.sound));
@@ -176,6 +196,10 @@ function start() {
   runVersion += 1;
   updateStudio({ reset: restart });
   tick(runVersion);
+  if (window.matchMedia('(max-width: 980px)').matches) {
+    document.querySelector('.conversation-card').scrollIntoView({ block: 'start', behavior: 'instant' });
+    document.querySelector('.play-button').focus({ preventScroll: true });
+  }
 }
 
 function chart() {
@@ -212,7 +236,7 @@ function publicationNotice() {
 }
 
 function overview() {
-  return `${pageHeading('От первого вопроса до получения авто.', 'Концепция AI-поддержки A Better Bid · все показатели демонстрационные.', periodControl())}${publicationNotice()}${metricCards()}${studio()}${buyerContext()}<section class="insight-grid" aria-label="Обзор каналов и нагрузки">${chart()}${channelPanel()}</section><section class="panel recent-panel"><div class="card-heading"><div><h2>За каждым диалогом — человек</h2><p>Последние обращения · пример рабочего дня</p></div><a class="text-button" href="#conversations">Все диалоги ${icon('arrow')}</a></div>${table(conversations.slice(0, 4))}</section>`;
+  return `<div class="overview-intro"><span class="intro-kicker">A BETTER BID / AI CARE</span>${pageHeading('Клиенту — ясность.<br><span>Команде — время.</span>', 'Концепция AI-поддержки: меньше повторяющихся вопросов, больше внимания покупателям.')}</div>${studio()}${publicationNotice()}${buyerContext()}<div class="section-heading"><div><span class="eyebrow">ВОЗМОЖНОСТИ АНАЛИТИКИ</span><h2>Вся поддержка. На одном экране.</h2><p>Иллюстративные показатели — пример будущего кабинета.</p></div>${periodControl()}</div>${metricCards()}<section class="insight-grid" aria-label="Обзор каналов и нагрузки">${chart()}${channelPanel()}</section><section class="panel recent-panel"><div class="card-heading"><div><h2>За каждым диалогом — человек</h2><p>Последние обращения · пример рабочего дня</p></div><a class="text-button" href="#conversations">Все диалоги ${icon('arrow')}</a></div>${table(conversations.slice(0, 4))}</section>`;
 }
 
 function filteredConversations() {
@@ -327,7 +351,14 @@ document.addEventListener('click', (event) => {
   if (target.hasAttribute('data-close')) { target.closest('dialog').close(); return; }
   if (target.dataset.open) { showDetail(target.dataset.open); return; }
   if (target.dataset.channel) {
-    stop(); state.channel = target.dataset.channel; state.count = 2; state.started = false; state.handoff = false; render(); return;
+    stop(); state.channel = target.dataset.channel;
+    document.querySelectorAll('[data-channel]').forEach((button) => {
+      const active = button.dataset.channel === state.channel;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    document.querySelector('#session-description').textContent = channelDescription();
+    updateStudio(); return;
   }
   const action = target.dataset.action;
   if (action === 'settings') settings();
@@ -336,9 +367,10 @@ document.addEventListener('click', (event) => {
   else if (action === 'next') {
     stop(); state.started = true; state.count = Math.min(state.count + 1, fixture().messages.length); updateStudio();
   } else if (action === 'finish') {
+    if (state.handoff) return;
     stop(); state.started = true; state.count = fixture().messages.length; updateStudio();
   } else if (action === 'handoff') {
-    stop(); state.handoff = true; updateStudio();
+    stop(); state.handoff = true; updateStudio(); document.querySelector('.play-button').focus({ preventScroll: true });
   } else if (action === 'sound') {
     if (state.sound) { state.sound = false; window.speechSynthesis?.cancel(); }
     else {
