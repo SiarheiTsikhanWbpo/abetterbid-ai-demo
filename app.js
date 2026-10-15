@@ -49,6 +49,7 @@ const state = {
 let timer;
 let toastTimer;
 let runVersion = 0;
+let settingsOpener;
 const fmt = (n) => new Intl.NumberFormat('ru-RU').format(n);
 const fixture = () => industries[state.industry];
 const text = (value) => value.replaceAll('{company}', state.company);
@@ -298,6 +299,7 @@ function openDialog(id) {
 }
 
 function settings() {
+  settingsOpener = document.activeElement;
   document.querySelector('#company-name').value = state.company;
   document.querySelector('#industry').value = state.industry;
   openDialog('settings-dialog');
@@ -445,7 +447,11 @@ document.querySelector('#settings-form').addEventListener('submit', (event) => {
   state.company = name.value.trim().slice(0, 40);
   state.industry = document.querySelector('#industry').value;
   stop(); state.count = 2; state.started = false; state.handoff = false; state.knowledgeSearch = '';
-  persist(); document.querySelector('#settings-dialog').close(); render(); toast('Демо настроено для вашей компании');
+  persist(); document.querySelector('#settings-dialog').close(); render();
+  const focusTarget = [settingsOpener, main.querySelector('[data-action="settings"]'), ...document.querySelectorAll('[data-action="settings"], [data-action="presentation"]')]
+    .find((el) => el?.isConnected && el.matches('button, a[href], input, select, textarea, [tabindex]') && !el.disabled && el.getClientRects().length);
+  focusTarget?.focus({ preventScroll: true });
+  toast('Демо настроено для вашей компании');
 });
 document.querySelector('#company-name').addEventListener('input', (e) => e.target.setCustomValidity(''));
 document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => {
