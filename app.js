@@ -43,7 +43,7 @@ try { saved = JSON.parse(localStorage.getItem('abb-ai-demo-v1') ?? '{}') ?? {}; 
 const state = {
   company: typeof saved.company === 'string' && saved.company.trim() ? saved.company.trim().slice(0, 40) : 'A Better Bid',
   industry: Object.hasOwn(industries, saved.industry) ? saved.industry : 'onboarding',
-  view: 'overview', period: 'today', channel: 'voice', deliveryChannel: 'whatsapp', count: 2, started: false, running: false, handoff: false, sound: false,
+  view: 'overview', period: 'today', channel: 'voice', count: 2, started: false, running: false, handoff: false, sound: false,
   search: '', filter: 'all', status: 'all', knowledgeSearch: '',
 };
 let timer;
@@ -320,20 +320,20 @@ function showDetail(id) {
   openDialog('detail-dialog');
 }
 
-function deliveryChoices() {
-  return `<div class="delivery-choices" role="group" aria-label="Канал получения информации">${['whatsapp', 'sms'].map((key) => `<button data-delivery="${key}" aria-pressed="${state.deliveryChannel === key}">${icon('messages')}${channels[key]}</button>`).join('')}</div>`;
+function messagePreviewBody(channel) {
+  return `<span class="message-recipient">${esc(fixture().client)} · ${esc(fixture().ref)}</span><p>${esc(followups[state.industry][channel])}</p><a href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a>`;
 }
 
-function messagePreviewBody() {
-  return `<span class="message-recipient">${esc(fixture().client)} · ${esc(fixture().ref)}</span><p>${esc(followups[state.industry][state.deliveryChannel])}</p><a href="${esc(fixture().sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(fixture().sourceLabel)} ${icon('arrow-up')}</a>`;
+function messagePreviews() {
+  return `<div class="message-preview-grid">${['whatsapp', 'sms'].map((channel) => `<article class="message-device channel-${channel}" aria-label="${channels[channel]}: пример сообщения"><div class="message-device-header">${icon('messages')}<h3>${channels[channel]}</h3><span>${channel === 'whatsapp' ? 'Подробности и ссылка' : 'Короткая памятка'}</span></div><div class="message-preview">${messagePreviewBody(channel)}</div><span class="message-device-footer">${icon('check-circle')}${channel === 'whatsapp' ? 'Можно вернуться к деталям после звонка' : 'Главное — в коротком сообщении'}</span></article>`).join('')}</div>`;
 }
 
 function followupCard() {
-  return `<section class="followup-card" aria-label="Информация после звонка"><div class="followup-copy"><span class="eyebrow">ЗВОНОК → SMS ИЛИ WHATSAPP</span><h2>Не нужно записывать.<br>Всё важное — в сообщении.</h2><p>Во время разговора клиент может попросить ссылку или памятку в удобный канал. К информации легко вернуться после звонка.</p>${deliveryChoices()}<span class="preview-disclaimer">Предпросмотр на вымышленных данных. Отправка отключена.</span></div><div class="message-device"><div class="message-device-header">${icon('messages')}<strong data-delivery-label>${channels[state.deliveryChannel]}</strong><span>Пример сообщения</span></div><div class="message-preview" data-message-body aria-live="polite">${messagePreviewBody()}</div><span class="message-device-footer">${icon('check-circle')}Ссылка и следующий шаг в одном месте</span></div></section>`;
+  return `<section class="followup-card" aria-label="Информация после звонка"><div class="followup-copy"><span class="eyebrow">ЗВОНОК → WHATSAPP И SMS</span><h2>WhatsApp и SMS —<br>информация под рукой.</h2><p>Развёрнутый итог со ссылкой в WhatsApp или короткая памятка в SMS. Клиент выбирает удобный канал.</p></div>${messagePreviews()}<span class="preview-disclaimer">Два готовых образца на вымышленных данных. Отправка отключена.</span></section>`;
 }
 
 function messageDialog() {
-  document.querySelector('#message-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">ПОСЛЕ РАЗГОВОРА</span><button class="icon-button" data-close aria-label="Закрыть пример сообщения">${icon('close')}</button></div><h2 id="message-title">Нужная информация — под рукой.</h2><p class="muted">Клиент выбирает, куда получить детали разговора: SMS или WhatsApp.</p>${deliveryChoices()}<div class="message-device"><div class="message-device-header">${icon('messages')}<strong data-delivery-label>${channels[state.deliveryChannel]}</strong><span>Пример сообщения</span></div><div class="message-preview" data-message-body aria-live="polite">${messagePreviewBody()}</div></div><p class="preview-disclaimer">Это готовый образец на вымышленных данных. Сообщение не отправляется, номер телефона не запрашивается.</p><div class="dialog-actions"><button class="button secondary" data-close>Вернуться к разговору</button></div>`;
+  document.querySelector('#message-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">ПОСЛЕ РАЗГОВОРА</span><button class="icon-button" data-close aria-label="Закрыть примеры сообщений">${icon('close')}</button></div><h2 id="message-title">Итог в WhatsApp и SMS.</h2><p class="muted">Два образца одного разговора: подробности в WhatsApp и короткая памятка в SMS. Клиент выбирает удобный канал.</p>${messagePreviews()}<p class="preview-disclaimer">Это готовые образцы на вымышленных данных. Сообщения не отправляются, номер телефона не запрашивается.</p><div class="dialog-actions"><button class="button secondary" data-close>Вернуться к разговору</button></div>`;
   openDialog('message-dialog');
 }
 
@@ -369,14 +369,6 @@ document.addEventListener('click', (event) => {
   if (target.classList.contains('skip-link')) { event.preventDefault(); main.focus(); main.scrollIntoView(); return; }
   if (target.hasAttribute('data-close')) { target.closest('dialog').close(); return; }
   if (target.dataset.open) { showDetail(target.dataset.open); return; }
-  if (target.dataset.delivery) {
-    if (!['whatsapp', 'sms'].includes(target.dataset.delivery)) return;
-    state.deliveryChannel = target.dataset.delivery;
-    document.querySelectorAll('[data-delivery]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.delivery === state.deliveryChannel)));
-    document.querySelectorAll('[data-delivery-label]').forEach((el) => { el.textContent = channels[state.deliveryChannel]; });
-    document.querySelectorAll('[data-message-body]').forEach((el) => { el.innerHTML = messagePreviewBody(); });
-    return;
-  }
   if (target.dataset.channel) {
     stop(); state.channel = target.dataset.channel;
     document.querySelectorAll('[data-channel]').forEach((button) => {
