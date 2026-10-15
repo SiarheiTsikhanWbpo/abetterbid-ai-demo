@@ -65,15 +65,56 @@ export const industries = {
   },
 };
 export const conversations=[
-  {id:'ABB-1048',name:'Анна К.',initials:'АК',channel:'voice',topic:'Допуск к торгам',status:'resolved',time:'12:42',duration:'0:42',industry:'onboarding'},
-  {id:'ABB-1047',name:'Михаил П.',initials:'МП',channel:'whatsapp',topic:'Статус доставки',status:'resolved',time:'12:38',duration:'1:16',industry:'shipping'},
-  {id:'ABB-1046',name:'Елена С.',initials:'ЕС',channel:'voice',topic:'Документы на автомобиль',status:'resolved',time:'12:31',duration:'0:58',industry:'documents'},
-  {id:'ABB-1045',name:'Дмитрий В.',initials:'ДВ',channel:'sms',topic:'Как забрать автомобиль',status:'resolved',time:'12:24',duration:'0:38',industry:'shipping'},
-  {id:'ABB-1044',name:'Мария Н.',initials:'МН',channel:'voice',topic:'Уточнение документов',status:'handoff',time:'12:18',duration:'1:32',industry:'documents'},
-  {id:'ABB-1043',name:'Александр Б.',initials:'АБ',channel:'whatsapp',topic:'Готовность аккаунта',status:'resolved',time:'12:09',duration:'0:46',industry:'onboarding'},
-  {id:'ABB-1042',name:'Ольга Д.',initials:'ОД',channel:'sms',topic:'Отслеживание документов',status:'resolved',time:'11:56',duration:'0:35',industry:'documents'},
-  {id:'ABB-1041',name:'Игорь А.',initials:'ИА',channel:'whatsapp',topic:'Нужен специалист по доставке',status:'handoff',time:'11:48',duration:'2:04',industry:'shipping'},
+  {id:'ABB-1048',ref:'DEMO-P1048',name:'Анна К.',initials:'АК',channel:'voice',topic:'Допуск к торгам',status:'resolved',time:'12:42',duration:'0:42',industry:'onboarding'},
+  {id:'ABB-1047',ref:'DEMO-L2048',name:'Михаил П.',initials:'МП',channel:'whatsapp',topic:'Статус доставки',status:'resolved',time:'12:38',duration:'1:16',industry:'shipping'},
+  {id:'ABB-1046',ref:'DEMO-L3086',name:'Елена С.',initials:'ЕС',channel:'voice',topic:'Документы на автомобиль',status:'resolved',time:'12:31',duration:'0:58',industry:'documents'},
+  {id:'ABB-1045',ref:'DEMO-L2049',name:'Дмитрий В.',initials:'ДВ',channel:'sms',topic:'Как забрать автомобиль',status:'resolved',time:'12:24',duration:'0:38',industry:'shipping'},
+  {id:'ABB-1044',ref:'DEMO-L3087',name:'Мария Н.',initials:'МН',channel:'voice',topic:'Уточнение документов',status:'handoff',time:'12:18',duration:'1:32',industry:'documents'},
+  {id:'ABB-1043',ref:'DEMO-P1049',name:'Александр Б.',initials:'АБ',channel:'whatsapp',topic:'Готовность аккаунта',status:'resolved',time:'12:09',duration:'0:46',industry:'onboarding'},
+  {id:'ABB-1042',ref:'DEMO-L3088',name:'Ольга Д.',initials:'ОД',channel:'sms',topic:'Отслеживание документов',status:'resolved',time:'11:56',duration:'0:35',industry:'documents'},
+  {id:'ABB-1041',ref:'DEMO-L2050',name:'Игорь А.',initials:'ИА',channel:'whatsapp',topic:'Нужен специалист по доставке',status:'handoff',time:'11:48',duration:'2:04',industry:'shipping'},
 ];
+// Detail cards with their own question and answer, rather than unrelated category text.
+const detailSamples = {
+  'ABB-1045': {
+    outcome:'Клиент понимает правила вывоза автомобиля',
+    sourceLabel:'Официальные правила вывоза автомобиля',
+    sourceUrl:'https://help.abetter.bid/hc/user-guide/articles/1771497207-may-i-pick-up-the-vehicle-by-myself-and-drive-it-home',
+    policyMessages:[2,4],
+    messages:[
+      ['agent','Здравствуйте! Я AI-ассистент «{company}». Помогу с получением автомобиля.'],
+      ['client','Как забрать автомобиль DEMO-L2049? Можно приехать и уехать на нём самому?'],
+      ['agent','По правилам A Better Bid автомобиль с площадки забирает лицензированная и застрахованная транспортная компания. Уехать своим ходом нельзя, независимо от состояния авто.'],
+      ['client','Пришлите правила по SMS, пожалуйста.'],
+      ['agent','Подготовлю ссылку на официальные правила вывоза. Если нужна помощь с организацией перевозки, можно обратиться к сотруднику поддержки.'],
+    ],
+  },
+  'ABB-1043': {
+    outcome:'Покупателю понятны Buying Power и следующий шаг',
+    sourceLabel:'Официальная справка о Buying Power',
+    sourceUrl:'https://help.abetter.bid/hc/user-guide/articles/1771497180-what-is-buying-power',
+    policyMessages:[2,4],
+    messages:[
+      ['agent','Здравствуйте! Я AI-ассистент «{company}». Помогу разобраться с готовностью аккаунта.'],
+      ['client','Аккаунт DEMO-P1049 создан. Что такое Buying Power и от чего он зависит?'],
+      ['agent','Buying Power определяет доступный размер ставок и количество автомобилей для участия. Он связан с обеспечительным депозитом. Конкретный лимит нужно проверять в своём аккаунте.'],
+      ['client','Можно сохранить эту информацию в WhatsApp?'],
+      ['agent','Подготовлю ссылку на официальную справку о Buying Power. По настройкам конкретного аккаунта можно обратиться к сотруднику поддержки.'],
+    ],
+  },
+  'ABB-1042': {
+    outcome:'Клиент знает, где искать трек-номер и как уточнить статус',
+    policyMessages:[2],
+    messages:[
+      ['agent','Здравствуйте! Я AI-ассистент «{company}». Подскажу, где искать информацию о документах.'],
+      ['client','Где найти трек-номер документов по автомобилю DEMO-L3088?'],
+      ['agent','Согласно справке A Better Bid, после обработки и отправки документов приходит email с номером отслеживания FedEx.'],
+      ['client','Письмо пока не пришло. Можно уточнить дату отправки?'],
+      ['agent','В этой демо-карточке отправка ещё не подтверждена. Для проверки даты по конкретному лоту можно обратиться к сотруднику поддержки. Сохранить порядок получения документов поможет ссылка на официальную инструкцию.'],
+    ],
+  },
+};
+for (const row of conversations) Object.assign(row, detailSamples[row.id]);
 export const channels={voice:'Звонок',whatsapp:'WhatsApp',sms:'SMS'};
 export const metrics = {
   today: { total: '1 248', duration: '0:42', rating: '4,9', labels: ['08–10', '10–12', '12–14', '14–16', '16–18', '18–20', '20–22'], ai: [63, 108, 126, 199, 171, 235, 171], human: [12, 21, 20, 29, 26, 38, 29], chartLabel: 'Обращения по часам', comparison: 'Иллюстративные показатели за день', split: [682, 416, 150] },

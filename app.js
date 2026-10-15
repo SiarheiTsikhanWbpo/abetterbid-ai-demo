@@ -1,4 +1,4 @@
-import { industries, conversations, channels, metrics, followups } from './data.js?v=20261015-channels';
+import { industries, conversations, channels, metrics, followups } from './data.js?v=20261015-client';
 
 const paths = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -81,7 +81,7 @@ function metricCards() {
   const cards = [
     ['messages', 'Всего обращений', m.total, '', '3 канала', 'единый контекст', '3,24 14,18 24,21 34,10 45,14 55,7 66,12 77,3'],
     ['messages', 'Каналы для клиента', '3', '', 'Звонок · SMS · WhatsApp', 'выбор клиента', '3,25 14,22 24,23 34,16 45,18 55,9 66,11 77,3'],
-    ['clock', 'Средний диалог', m.duration, '', 'Без ожидания', 'пример сценария', '3,5 14,11 24,8 34,18 45,15 55,24 66,20 77,27'],
+    ['clock', 'Средний диалог', m.duration, '', 'Пример', 'длительность сценария', '3,5 14,11 24,8 34,18 45,15 55,24 66,20 77,27'],
     ['star', 'Оценка сервиса', m.rating, '/ 5', 'Обратная связь', 'пример оценки', '3,25 14,18 24,20 34,10 45,13 55,8 66,9 77,4'],
   ];
   return `<section class="metric-grid" aria-label="Демонстрационные показатели">${cards.map(([i, label, value, unit, badge, note, points]) => `<article class="metric-card"><div class="metric-label">${icon(i)}${label}</div><div class="metric-number">${value}<span>${unit}</span></div><svg class="sparkline" viewBox="0 0 80 32" aria-hidden="true"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="metric-note"><b>${badge}</b><span>${note}</span></div></article>`).join('')}</section>`;
@@ -96,7 +96,7 @@ function studio() {
     <article class="studio-card ${state.running ? 'is-running' : ''}">
       <div class="studio-top"><span class="eyebrow">ПОПРОБУЙТЕ В ДЕЙСТВИИ</span><label class="sr-only" for="scenario">Сценарий поддержки</label><select id="scenario" class="scenario-select">${Object.entries(industries).map(([key, v]) => `<option value="${key}" ${key === state.industry ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
       <h2>Один вопрос.<br><span>Понятный ответ.</span></h2>
-      <p>Отвечает на вопросы в звонке.<br>Присылает детали в SMS или WhatsApp.<br>Сотрудник поддержки всегда рядом.</p>
+      <p>Отвечает на вопросы в звонке.<br>Присылает детали в SMS или WhatsApp.<br>Живая поддержка — по вашему запросу.</p>
       ${voiceArt()}
       <div class="orbit-tag">${icon('database')}Ответы и детали под рукой</div>
       <div class="studio-actions"><button class="button primary" data-action="start">${icon(state.running ? 'pause' : 'play')}<span id="start-label">${state.running ? 'Приостановить' : 'Запустить сценарий'}</span></button><span class="studio-hint">${esc(fixture().topic)} · ~40 секунд</span></div>
@@ -237,7 +237,7 @@ function publicationNotice() {
 }
 
 function overview() {
-  return `<div class="overview-intro"><span class="intro-kicker">A BETTER BID / AI-АССИСТЕНТ</span>${pageHeading('Помощь — рядом.<br><span>Детали — под рукой.</span>', 'Ответы в звонке, детали — в SMS или WhatsApp. Поддержка всегда рядом.')}</div>${studio()}${followupCard()}${publicationNotice()}${buyerContext()}<div class="section-heading"><div><span class="eyebrow">УДОБСТВО ОБЩЕНИЯ</span><h2>Как клиентам удобнее общаться.</h2><p>Иллюстративные показатели — пример будущего кабинета.</p></div>${periodControl()}</div>${metricCards()}<section class="insight-grid" aria-label="Обзор каналов и нагрузки">${chart()}${channelPanel()}</section><section class="panel recent-panel"><div class="card-heading"><div><h2>За каждым диалогом — человек</h2><p>Последние обращения · пример рабочего дня</p></div><a class="text-button" href="#conversations">Все диалоги ${icon('arrow')}</a></div>${table(conversations.slice(0, 4))}</section>`;
+  return `<div class="overview-intro"><span class="intro-kicker">A BETTER BID / AI-АССИСТЕНТ</span>${pageHeading('Помощь — рядом.<br><span>Детали — под рукой.</span>', 'Ответы в звонке, детали — в SMS или WhatsApp. Можно обратиться к живой поддержке.')}</div>${studio()}${followupCard()}${publicationNotice()}${buyerContext()}<div class="section-heading"><div><span class="eyebrow">УДОБСТВО ОБЩЕНИЯ</span><h2>Как клиентам удобнее общаться.</h2><p>Иллюстративные показатели — пример будущего кабинета.</p></div>${periodControl()}</div>${metricCards()}<section class="insight-grid" aria-label="Обзор каналов и нагрузки">${chart()}${channelPanel()}</section><section class="panel recent-panel"><div class="card-heading"><div><h2>За каждым диалогом — человек</h2><p>Последние обращения · пример рабочего дня</p></div><a class="text-button" href="#conversations">Все диалоги ${icon('arrow')}</a></div>${table(conversations.slice(0, 4))}</section>`;
 }
 
 function filteredConversations() {
@@ -308,7 +308,14 @@ function settings() {
 function showDetail(id) {
   const row = conversations.find((item) => item.id === id);
   if (!row) return;
-  const scenario = industries[row.industry];
+  const base = industries[row.industry];
+  const ref = row.ref ?? base.ref;
+  const scenario = {
+    ...base, ...row,
+    ref,
+    source: base.source.replaceAll(base.ref, ref),
+    messages: row.messages ?? base.messages.map(([role, content]) => [role, content.replaceAll(base.ref, ref)]),
+  };
   const handed = row.status === 'handoff';
   // A handoff record has its own coherent transcript, not a resolved conversation.
   const messages = handed ? [
@@ -316,7 +323,7 @@ function showDetail(id) {
     ['client', `Пожалуйста, подключите специалиста. ${scenario.context}. Номер: ${scenario.ref}.`],
     ['agent', 'Подготовлю для сотрудника историю разговора и номер вашего демо-лота.'],
   ] : scenario.messages;
-  document.querySelector('#detail-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">ПРИМЕР ДИАЛОГА · ${row.id}</span><button class="icon-button" data-close aria-label="Закрыть диалог">${icon('close')}</button></div><h2 id="detail-title">${row.topic}</h2><div class="detail-meta"><span>${row.name}</span><span>${channels[row.channel]}</span><span>${row.duration}</span>${statusBadge(row.status)}</div><div class="transcript">${messages.map(([role, content], i) => bubble(role, content, i, scenario)).join('')}${handed ? handoffNote(scenario) : ''}</div><div class="detail-result"><strong>${handed ? 'Контекст подготовлен для сотрудника' : scenario.outcome}</strong>${esc(scenario.source)}. Вымышленный пример; сообщения не отправлялись.</div><div class="dialog-actions"><button class="button secondary" data-close>Закрыть</button><button class="button primary" data-action="load-scenario" data-industry="${row.industry}" data-channel="${row.channel}">Открыть в демо-студии ${icon('arrow')}</button></div>`;
+  document.querySelector('#detail-dialog').innerHTML = `<div class="dialog-top"><span class="eyebrow">ПРИМЕР ДИАЛОГА · ${row.id}</span><button class="icon-button" data-close aria-label="Закрыть диалог">${icon('close')}</button></div><h2 id="detail-title">${row.topic}</h2><div class="detail-meta"><span>${row.name}</span><span>${channels[row.channel]}</span><span>${row.duration}</span>${statusBadge(row.status)}</div><div class="transcript">${messages.map(([role, content], i) => bubble(role, content, i, scenario)).join('')}${handed ? handoffNote(scenario) : ''}</div><div class="detail-result"><strong>${handed ? 'Контекст подготовлен для сотрудника' : scenario.outcome}</strong>${esc(scenario.source)}. Вымышленный пример; сообщения не отправлялись.</div><div class="dialog-actions"><button class="button secondary" data-close>Закрыть</button><button class="button primary" data-action="load-scenario" data-industry="${row.industry}" data-channel="${row.channel}">Общий сценарий по теме ${icon('arrow')}</button></div>`;
   openDialog('detail-dialog');
 }
 
@@ -369,9 +376,9 @@ document.addEventListener('click', (event) => {
   if (target.classList.contains('skip-link')) { event.preventDefault(); main.focus(); main.scrollIntoView(); return; }
   if (target.hasAttribute('data-close')) { target.closest('dialog').close(); return; }
   if (target.dataset.open) { showDetail(target.dataset.open); return; }
-  if (target.dataset.channel) {
+  if (target.matches('.channel-tabs button[data-channel]')) {
     stop(); state.channel = target.dataset.channel;
-    document.querySelectorAll('[data-channel]').forEach((button) => {
+    document.querySelectorAll('.channel-tabs [data-channel]').forEach((button) => {
       const active = button.dataset.channel === state.channel;
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', String(active));
@@ -401,8 +408,11 @@ document.addEventListener('click', (event) => {
     updateStudio();
   } else if (action === 'export') exportExamples();
   else if (action === 'load-scenario') {
-    target.closest('dialog').close(); state.channel = target.dataset.channel; setIndustry(target.dataset.industry);
-    if (location.hash !== '#agent') location.hash = '#agent'; else render();
+    target.closest('dialog').close(); state.channel = target.dataset.channel;
+    if (state.view !== 'agent') { history.pushState(null, '', '#agent'); state.view = 'agent'; }
+    setIndustry(target.dataset.industry);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.querySelector('#scenario')?.focus({ preventScroll: true });
   } else if (action === 'presentation-settings') {
     target.closest('dialog').close(); settings();
   } else if (action === 'presentation-start') {
