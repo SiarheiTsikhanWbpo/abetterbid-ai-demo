@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.ttf binary
+assets/abetterbid-logo.svg -whitespace
+assets/OFL-Manrope.txt -whitespace

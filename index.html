@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f5">
+  <meta name="description" content="A Better Bid AI Care — концепция поддержки покупателей: допуск к торгам, доставка и документы.">
+  <title>A Better Bid — AI Care Demo</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="preload" href="./assets/manrope.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+  <aside class="sidebar" aria-label="Главная навигация">
+    <a class="brand" href="#overview" aria-label="A Better Bid — обзор"><img src="./assets/abetterbid-logo.svg" width="184" height="25" alt="A Better Bid"><span class="brand-product">AI CARE / КОНЦЕПЦИЯ</span></a>
+    <button class="workspace" data-action="settings"><span class="workspace-avatar">A</span><span><strong data-company>A Better Bid</strong><small>Рабочее пространство</small></span><span data-icon="chevrons" aria-hidden="true"></span></button>
+    <div class="nav-caption">ПЛАТФОРМА</div>
+    <nav id="navigation">
+      <a href="#overview" data-view="overview"><span data-icon="grid"></span><span>Обзор</span></a>
+      <a href="#conversations" data-view="conversations"><span data-icon="messages"></span><span>Диалоги</span><span class="nav-count">8</span></a>
+      <a href="#agent" data-view="agent"><span data-icon="sparkles"></span><span>AI-агент</span></a>
+      <a href="#analytics" data-view="analytics"><span data-icon="chart"></span><span>Аналитика</span></a>
+      <a href="#knowledge" data-view="knowledge"><span data-icon="book"></span><span>База знаний</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="personalize-card"><span class="tiny-spark" data-icon="sparkles"></span><strong>Покупатель не остаётся один.</strong><p>Аккаунт, доставка, документы.<br>Контекст на каждом этапе.</p><button data-action="settings">Настроить демо <span data-icon="arrow"></span></button></div>
+      <a class="help-link document-link" href="./capabilities.md" download><span data-icon="book"></span>Возможности и данные<span data-icon="download"></span></a>
+      <button class="help-link" data-action="presentation"><span data-icon="help"></span>Как это работает<span data-icon="arrow-up"></span></button>
+      <div class="profile"><span class="profile-avatar">ВЫ</span><span><strong>A Better Bid</strong><small>Концепция AI-поддержки</small></span><span class="profile-dot"></span></div>
+    </div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><div class="breadcrumb"><span class="breadcrumb-root">A Better Bid · AI Care</span> <span class="breadcrumb-divider">/</span> <strong id="breadcrumb">Обзор</strong></div><div class="top-actions"><span class="demo-badge"><span></span> Демо-режим</span><button class="top-help" data-action="presentation"><span data-icon="play"></span>Как это работает</button><button class="icon-button mobile-settings" data-action="settings" aria-label="Настроить демо"><span data-icon="settings"></span></button></div></header>
+    <main id="main" tabindex="-1"></main>
+    <footer class="page-footer"><span><span class="brand-mini" aria-hidden="true">ABB</span> Концепция поддержки покупателя.</span><span>Профили, лоты и метрики вымышлены</span></footer>
+  </div>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <form id="settings-form">
+      <div class="dialog-top"><span class="eyebrow">НАСТРОЙКА ПОКАЗА</span><button class="icon-button" type="button" data-close aria-label="Закрыть настройки"><span data-icon="close"></span></button></div>
+      <h2 id="settings-title">Демо для A Better Bid.</h2><p class="muted">Выберите этап клиентского пути и настройте название для показа.</p>
+      <label for="company-name">Название компании</label><input id="company-name" name="company" maxlength="40" required autocomplete="organization" placeholder="A Better Bid"><small class="field-hint">До 40 символов. Используется только в этом браузере.</small>
+      <label for="industry">Сценарий поддержки</label><select id="industry" name="industry"><option value="onboarding">Допуск к торгам</option><option value="shipping">Доставка автомобиля</option><option value="documents">Документы после покупки</option></select>
+      <div class="settings-preview"><span data-icon="shield"></span><p>Сценарии работают локально на вымышленных данных. Настройка не меняет действующего агента.</p></div>
+      <div class="dialog-actions"><button class="button secondary" type="button" data-close>Отмена</button><button class="button primary" type="submit">Применить <span data-icon="arrow"></span></button></div>
+    </form>
+  </dialog>
+  <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title"></dialog>
+  <dialog id="presentation-dialog" class="presentation-dialog" aria-labelledby="presentation-title"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
